@@ -32,6 +32,8 @@ export const Editor = () => {
   const [canvas, setCanvas] = useState<Canvas | null>(null);
   const [videos, setVideos] = useState<string[]>([]);
   const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
+  const [maxTime, setMaxTime] = useState<number>(60*1000);
+  const widthsOfTimeFrameContainer = document.getElementById("timeframes-container")?.clientWidth ?? 200;
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -42,7 +44,7 @@ export const Editor = () => {
     const canvas = new fabric.Canvas("canvas", {
       height: 500,
       width: 800,
-      backgroundColor: "pink",
+      backgroundColor: "#ededed",
     });
     setCanvas(canvas);
     fabric.util.requestAnimFrame(function render() {
@@ -98,6 +100,7 @@ export const Editor = () => {
                     document.getElementById(`video-${index}`)
                   );
                   console.log(videoElement);
+                  const videoDurationMs = videoElement.duration * 1000;
                   setEditorElements([...editorElements, {
                     id: getUid(),
                     name: `Media(video) ${index+1}`,
@@ -111,7 +114,7 @@ export const Editor = () => {
                     },
                     timeFrame: {
                       start: 0,
-                      end: 0,
+                      end: videoDurationMs,
                     },
                     properties: {
                       elementId: `video-${index}`,
@@ -183,7 +186,25 @@ export const Editor = () => {
           })}
           </div>
       </div>
-      <div className="bg-slate-500 col-start-3 row-start-2 col-span-2">time line</div>
+      <div className="bg-slate-500 col-start-3 row-start-2 col-span-2">
+        {/* Heading for timeline */}
+        <div className="flex flex-row justify-between">
+          <div>Timeline</div>
+        </div>
+        <div id="timeframes-container">
+        {editorElements.map((element) => {
+          const pxPerMs = widthsOfTimeFrameContainer / maxTime;
+          const left = Math.ceil( element.timeFrame.start * pxPerMs);
+          const width = Math.ceil((element.timeFrame.end - element.timeFrame.start) * pxPerMs);
+          return (
+            <div key={element.id}>
+            <div className={`bg-slate-900 h-[20px] pv-[10px]`} style={{width:width,marginLeft:left}}></div>
+            </div>
+          );
+        })}
+        </div>
+
+      </div>
     </div>
   );
 };
