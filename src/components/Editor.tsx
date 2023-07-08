@@ -302,7 +302,7 @@ export const Editor = () => {
                 className="flex flex-row justify-between items-center max-h-[50px]"
                 key={element.id}
               >
-                <div>{element.name}</div>
+                <div className="truncate min-w-[100px]">{element.name}</div>
                 <div>
                   {element.type === "video" ? (
                     <video
@@ -346,7 +346,7 @@ export const Editor = () => {
       <div className="bg-slate-500 col-start-3 row-start-3 col-span-2 relative">
         {/* Heading for timeline */}
         <div className="flex flex-col justify-between">
-          <div>Timeline (ignore, its very bad)</div>
+          <div>Timeline</div>
           <SeekPlayer
             key={editorElements.length}
             onPlay={() => {
