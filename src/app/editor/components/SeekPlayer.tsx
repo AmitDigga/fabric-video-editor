@@ -6,6 +6,8 @@ export type Props = {
     // currentTime: number;
     maxTime: number;
     onSeek: (time: number) => void;
+    onPlay: () => void;
+    onPause: () => void;
 }
 export const SeekPlayer = (props:Props)=>{
     const [currentTime, setCurrentTime] = useState<number>(0); // [ms
@@ -32,7 +34,11 @@ export const SeekPlayer = (props:Props)=>{
         setCurrentTime(time);
     }
     return <div className="seek-player flex flex-col">
-        <button className="w-[50px]" onClick={()=>setPlay(!play)}>{play ? "Pause" : "Play"}</button>
+        <button className="w-[50px]" onClick={()=>{
+            if(play) props.onPause();
+            else props.onPlay();
+            return setPlay(!play);
+        }}>{play ? "Pause" : "Play"}</button>
         <input className="flex-1" type="range" min={0} max={maxTime} value={currentTime} onChange={handleSeek} />
         <span className="w-[100px]">{Math.floor(currentTime/1000 * 10)/10}s</span>
     </div>

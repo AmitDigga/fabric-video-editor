@@ -145,6 +145,7 @@ export const Editor = () => {
                     document.getElementById(`video-${index}`)
                   );
                   const videoDurationMs = videoElement.duration * 1000;
+                  const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
                   setEditorElements([...editorElements, {
                     id: getUid(),
                     name: `Media(video) ${index+1}`,
@@ -152,7 +153,7 @@ export const Editor = () => {
                     placement: {
                       x: 0,
                       y: 0,
-                      width:100,
+                      width:100 * aspectRatio,
                       height: 100,
                       rotation: 0,
                       scaleX: 1,
@@ -184,7 +185,7 @@ export const Editor = () => {
           htmlFor="fileInput"
           className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4  h-[150px] text-white"
         >
-          <input id="fileInput" type="file"  className="hidden" onChange={handleFileChange} />
+          <input id="fileInput" type="file" accept="video/mp4,video/x-m4v,video/*"   className="hidden" onChange={handleFileChange} />
           Add Video
           <svg
             className="h-6 w-6 text-white mx-auto"
@@ -236,14 +237,35 @@ export const Editor = () => {
         {/* Heading for timeline */}
         <div className="flex flex-col justify-between">
           <div>Timeline</div>
-          <SeekPlayer maxTime={maxTime} onSeek={(seek)=>{
+          <SeekPlayer 
+          onPlay={()=>{
             editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
             .forEach((element)=>{
               const video = document.getElementById(element.properties.elementId);
               if(isHtmlVideoElement(video)){
-                video.currentTime = seek/1000;
+                video.play();
               }
             })
+          }}
+          onPause={()=>{
+            editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
+            .forEach((element)=>{
+              const video = document.getElementById(element.properties.elementId);
+              if(isHtmlVideoElement(video)){
+                video.pause();
+              }
+            })
+          }}
+          maxTime={maxTime} 
+          onSeek={(seek)=>{
+            // editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
+            // .forEach((element)=>{
+            //   const video = document.getElementById(element.properties.elementId);
+            //   console.log("new time is ", seek/1000);
+            //   if(isHtmlVideoElement(video)){
+            //     video.currentTime = seek/1000;
+            //   }
+            // })
           }} />
         </div>
         <div id="timeframes-container">
