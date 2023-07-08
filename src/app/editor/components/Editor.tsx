@@ -4,9 +4,34 @@ import { fabric } from "fabric";
 import { Canvas } from "fabric/fabric-impl";
 import { useState, useEffect } from "react";
 
+export type Placement = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+}
+
+export type TimeFrame = {
+  start: number;
+  end: number;
+}
+
+export type EditorElementBase<T extends string,P> = {
+  readonly id: string;
+  name: string;
+  readonly type : T;
+  placement: Placement;
+  timeFrame: TimeFrame;
+  properties: P;
+}
+
+export type EditorElement = EditorElementBase<"video",{ elementId:string }> | EditorElementBase<"image",{ src: string }>;
+
 export const Editor = () => {
   const [canvas, setCanvas] = useState<Canvas | null>(null);
   const [videos, setVideos] = useState<string[]>([]);
+  const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -15,8 +40,8 @@ export const Editor = () => {
   };
   useEffect(() => {
     const canvas = new fabric.Canvas("canvas", {
-      height: 400,
-      width: 400,
+      height: 500,
+      width: 800,
       backgroundColor: "pink",
     });
     setCanvas(canvas);
@@ -25,8 +50,40 @@ export const Editor = () => {
       fabric.util.requestAnimFrame(render);
     });
   }, []);
+  useEffect(() => {
+    if (!canvas) return;
+    canvas.remove(...canvas.getObjects());
+      for(const element of editorElements){
+        switch(element.type){
+          case "video":
+            const videoElement = getHtmlVideoElement(
+              document.getElementById(element.properties.elementId)
+            );
+            const videoObject = new fabric.Image(videoElement, {
+              // backgroundColor: "red",
+              left: element.placement.x,
+              top: element.placement.y,
+              objectCaching: false,
+              stroke: "black",
+              strokeWidth: 1,
+              // height: element.placement.height,
+              // width: element.placement.width,
+              selectable: true,
+            });
+            canvas.add(videoObject);
+            console.log(videoObject)
+            break;
+          case "image": {
+            throw new Error("Not implemented")
+          };
+          default:{
+            throw new Error("Not implemented")
+          };
+        }
+      }
+  }, [editorElements]);
   return (
-    <div className="grid grid-rows-[60%_40%] grid-cols-[60px_200px_1fr] h-[100%]">
+    <div className="grid grid-rows-[500px_1fr] grid-cols-[60px_200px_800px_1fr] h-[100%]">
       <div className="tile row-span-2 bg-slate-400">Menu</div>
       <div className="row-span-2 flex flex-col bg-slate-200">
         {videos.map((video, index) => {
@@ -36,19 +93,31 @@ export const Editor = () => {
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-[100px]"
                 onClick={() => {
                   if (!canvas) return;
+                  console.log("add");
                   const videoElement = getHtmlVideoElement(
                     document.getElementById(`video-${index}`)
                   );
-                  const videoObject = new fabric.Image(videoElement, {
-                    // backgroundColor: "red",
-                    left: 20,
-                    top: 20,
-                    objectCaching: false,
-                    stroke: "black",
-                    strokeWidth: 1,
-                    selectable: true,
-                  });
-                  canvas.add(videoObject);
+                  console.log(videoElement);
+                  setEditorElements([...editorElements, {
+                    id: "1",
+                    name: "video",
+                    type: "video",
+                    placement: {
+                      x: 0,
+                      y: 0,
+                      width:100,
+                      height: 100,
+                      rotation: 0,
+                    },
+                    timeFrame: {
+                      start: 0,
+                      end: 0,
+                    },
+                    properties: {
+                      elementId: `video-${index}`,
+                      // src: videoElement.src,
+                    },
+                  }])
                 }}
               >
                 Add
@@ -85,9 +154,10 @@ export const Editor = () => {
       </div>
       <canvas
         id="canvas"
-        className="h-[400px] w-[400px] row col-start-3 start-1"
+        className="h-[500px] w-[800px] row col-start-3"
       />
-      <div className="bg-slate-500 col-start-3 row-start-2">time line</div>
+      <div className="bg-slate-400 col-start-4 row-start-1">elements</div>
+      <div className="bg-slate-500 col-start-3 row-start-2 col-span-2">time line</div>
     </div>
   );
 };
