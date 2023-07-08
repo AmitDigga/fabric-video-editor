@@ -1,7 +1,6 @@
 "use client";
 
 import { fabric } from "fabric";
-import { Canvas } from "fabric/fabric-impl";
 import React, { useState, useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
 
@@ -153,7 +152,7 @@ function refreshElements(
 }
 
 export const Editor = () => {
-  const [canvas, setCanvas] = useState<Canvas | null>(null);
+  const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
   const [videos, setVideos] = useState<string[]>([]);
   const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
   const [maxTime] = useState<number>(60 * 1000);
