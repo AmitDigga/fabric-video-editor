@@ -36,6 +36,7 @@ export const Editor = () => {
   const [videos, setVideos] = useState<string[]>([]);
   const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
   const [maxTime, setMaxTime] = useState<number>(60*1000);
+  // @ts-ignore
   const widthsOfTimeFrameContainer = document.getElementById("timeframes-container")?.clientWidth ?? 200;
 
   const handleFileChange = (event) => {
@@ -69,33 +70,46 @@ export const Editor = () => {
               left: element.placement.x,
               top: element.placement.y,
               angle: element.placement.rotation,
-              width: element.placement.width,
-              height: element.placement.height,
-              scaleX: element.placement.scaleX,
-              scaleY: element.placement.scaleY,
               objectCaching: false,
-              // stroke: "black",
-              // strokeWidth: 1,
-              // height: element.placement.height,
-              // width: element.placement.width,
               selectable: true,
+              stroke: "red",
+              strokeWidth: 1,
               lockUniScaling: true,
             });
+            const video = {
+              w: videoElement.videoWidth,
+              h: videoElement.videoHeight,
+            }
+            
+            const toScale ={
+              x: element.placement.width/video.w,
+              y: element.placement.height/video.h,
+            };
+            videoObject.width = video.w;
+            videoObject.height = video.h;
+            videoElement.width = video.w;
+            videoElement.height = video.h;
+            videoObject.scaleToHeight(video.w);
+            videoObject.scaleToWidth(video.h);
+            videoObject.scaleX =  toScale.x * element.placement.scaleX;
+            videoObject.scaleY =  toScale.y * element.placement.scaleY;
             canvas.add(videoObject);
             canvas.on("object:modified", function (e) {
               if(!e.target) return;
               const target = e.target;
               if(target != videoObject) return;
               const placement = element.placement;
+              let fianlScale = 1;
+              if(target.scaleX && target.scaleX > 0) {
+                fianlScale = target.scaleX/toScale.x;
+              }
               const newPlacement : Placement= {
                 ...placement,
                   x: target.left?? placement.x,
                   y: target.top ?? placement.y,
-                  width: target.width ?? placement.width,
-                  height: target.height ?? placement.height,
                   rotation: target.angle ?? placement.rotation,
-                  scaleX: target.scaleX ?? placement.scaleX,
-                  scaleY: target.scaleY ?? placement.scaleY,
+                  scaleX: fianlScale,
+                  scaleY : fianlScale,
               }
               const newElement = {
                 ...element,
