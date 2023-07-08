@@ -29,7 +29,7 @@ export type EditorElementBase<T extends string,P> = {
   properties: P;
 }
 
-export type EditorElement = EditorElementBase<"video",{ src:string, elementId:string, imageObject?: fabric.Image }> | EditorElementBase<"image",{ src: string }>;
+export type EditorElement = EditorElementBase<"video",{ src:string, elementId:string, imageObject?: fabric.Image }> | EditorElementBase<"text",{ text:string }>;
 
 
 function refreshElements(canvas:fabric.Canvas|null, editorElements: EditorElement[], setEditorElements: (elements: EditorElement[])=>void){
@@ -50,8 +50,6 @@ function refreshElements(canvas:fabric.Canvas|null, editorElements: EditorElemen
               angle: element.placement.rotation,
               objectCaching: false,
               selectable: true,
-              stroke: "red",
-              strokeWidth: 1,
               lockUniScaling: true,
             });
             element.properties.imageObject = videoObject;
@@ -100,8 +98,43 @@ function refreshElements(canvas:fabric.Canvas|null, editorElements: EditorElemen
             })
             break;
           }
-          case "image": {
-            throw new Error("Not implemented")
+          case "text": {
+            const textObject = new fabric.Textbox(element.properties.text, {
+              left: element.placement.x,
+              top: element.placement.y,
+              angle: element.placement.rotation,
+              objectCaching: false,
+              selectable: true,
+              lockUniScaling: true,
+            });
+            canvas.add(textObject);
+            canvas.on("object:modified", function (e) {
+              if(!e.target) return;
+              const target = e.target;
+              if(target != textObject) return;
+              const placement = element.placement;
+              const newPlacement : Placement= {
+                ...placement,
+                  x: target.left?? placement.x,
+                  y: target.top ?? placement.y,
+                  rotation: target.angle ?? placement.rotation,
+                  // scaleX: fianlScale,
+                  // scaleY : fianlScale,
+              }
+              const newElement = {
+                ...element,
+                placement: newPlacement,
+                properties: {
+                  ...element.properties,
+                  // @ts-ignore
+                  text: target?.text ,
+                }
+              }
+              const newEditorElements = [...editorElements];
+              newEditorElements[index] = newElement;
+              setEditorElements(newEditorElements)
+            })
+            break
           };
           default:{
             throw new Error("Not implemented")
@@ -209,6 +242,36 @@ export const Editor = () => {
             />
           </svg>
         </label>
+        <button
+          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded m-4"
+          onClick={() => {
+            if (!canvas) return;
+            const id = getUid();
+            setEditorElements([...editorElements, {
+              id,
+              name: `Text ${editorElements.length+1}`,
+              type: "text",
+              placement: {
+                x: 0,
+                y: 0,
+                width:100,
+                height: 100,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+              },
+              timeFrame: {
+                start: 0,
+                end: maxTime,
+              },
+              properties: {
+                text: "Text",
+              },
+            }])
+          }}
+        >
+          Add Text
+        </button>
       </div>
       <canvas
         id="canvas"
@@ -222,7 +285,7 @@ export const Editor = () => {
         <div className="flex flex-col">
           {editorElements.map((element) => {
             return (
-              <div className="flex flex-row justify-between items-center" key={element.id}>
+              <div className="flex flex-row justify-between items-center max-h-[50px]" key={element.id}>
                 <div>{element.name}</div>
                 <div>
                   {
