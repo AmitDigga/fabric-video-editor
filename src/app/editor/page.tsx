@@ -1,5 +1,9 @@
 import { Editor } from "./components/Editor";
 
-export default function () {
+function EditorPage() {
   return <Editor></Editor>;
 }
+
+EditorPage.diplsayName = "EditorPage";
+
+export default EditorPage;
