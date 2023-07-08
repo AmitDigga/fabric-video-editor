@@ -11,6 +11,8 @@ export type Placement = {
   width: number;
   height: number;
   rotation: number;
+  scaleX: number;
+  scaleY: number;
 }
 
 export type TimeFrame = {
@@ -56,7 +58,8 @@ export const Editor = () => {
   useEffect(() => {
     if (!canvas) return;
     canvas.remove(...canvas.getObjects());
-      for(const element of editorElements){
+      for(let index = 0; index < editorElements.length; index++){
+        const element = editorElements[index];
         switch(element.type){
           case "video":{
             const videoElement = getHtmlVideoElement(
@@ -65,15 +68,43 @@ export const Editor = () => {
             const videoObject = new fabric.Image(videoElement, {
               left: element.placement.x,
               top: element.placement.y,
+              angle: element.placement.rotation,
+              width: element.placement.width,
+              height: element.placement.height,
+              scaleX: element.placement.scaleX,
+              scaleY: element.placement.scaleY,
               objectCaching: false,
               stroke: "black",
               strokeWidth: 1,
               // height: element.placement.height,
               // width: element.placement.width,
               selectable: true,
+              lockUniScaling: true,
             });
             canvas.add(videoObject);
-            console.log(videoObject)
+            canvas.on("object:modified", function (e) {
+              if(!e.target) return;
+              const target = e.target;
+              if(target != videoObject) return;
+              const placement = element.placement;
+              const newPlacement : Placement= {
+                ...placement,
+                  x: target.left?? placement.x,
+                  y: target.top ?? placement.y,
+                  width: target.width ?? placement.width,
+                  height: target.height ?? placement.height,
+                  rotation: target.angle ?? placement.rotation,
+                  scaleX: target.scaleX ?? placement.scaleX,
+                  scaleY: target.scaleY ?? placement.scaleY,
+              }
+              const newElement = {
+                ...element,
+                placement: newPlacement,
+              }
+              const newEditorElements = [...editorElements];
+              newEditorElements[index] = newElement;
+              setEditorElements(newEditorElements)
+            })
             break;
           }
           case "image": {
@@ -96,11 +127,9 @@ export const Editor = () => {
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-[100px]"
                 onClick={() => {
                   if (!canvas) return;
-                  console.log("add");
                   const videoElement = getHtmlVideoElement(
                     document.getElementById(`video-${index}`)
                   );
-                  console.log(videoElement);
                   const videoDurationMs = videoElement.duration * 1000;
                   setEditorElements([...editorElements, {
                     id: getUid(),
@@ -112,6 +141,8 @@ export const Editor = () => {
                       width:100,
                       height: 100,
                       rotation: 0,
+                      scaleX: 1,
+                      scaleY: 1,
                     },
                     timeFrame: {
                       start: 0,
