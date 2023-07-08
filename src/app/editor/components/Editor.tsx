@@ -148,6 +148,7 @@ export const Editor = () => {
   const [videos, setVideos] = useState<string[]>([]);
   const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
   const [maxTime, setMaxTime] = useState<number>(60*1000);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   // @ts-ignore
   const widthsOfTimeFrameContainer = document.getElementById("timeframes-container")?.clientWidth ?? 200;
 
@@ -224,26 +225,13 @@ export const Editor = () => {
         })}
         <label
           htmlFor="fileInput"
-          className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4  h-[150px] text-white"
+          className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4 py-2 text-white"
         >
           <input id="fileInput" type="file" accept="video/mp4,video/x-m4v,video/*"   className="hidden" onChange={handleFileChange} />
           Add Video
-          <svg
-            className="h-6 w-6 text-white mx-auto"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
         </label>
         <button
-          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded m-4"
+          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
           onClick={() => {
             if (!canvas) return;
             const id = getUid();
@@ -322,6 +310,7 @@ export const Editor = () => {
           <div>Timeline</div>
           <SeekPlayer 
           onPlay={()=>{
+            setIsPlaying(true);
             editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
             .forEach((element)=>{
               const video = document.getElementById(element.properties.elementId);
@@ -331,6 +320,7 @@ export const Editor = () => {
             })
           }}
           onPause={()=>{
+            setIsPlaying(false);
             editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
             .forEach((element)=>{
               const video = document.getElementById(element.properties.elementId);
@@ -350,6 +340,9 @@ export const Editor = () => {
                     element.properties.imageObject.set({opacity:1});
                   }else{
                     element.properties.imageObject.set({opacity:0});
+                  }
+                  if(!isPlaying){
+                    video.currentTime = seek/1000;
                   }
                 }
               }
