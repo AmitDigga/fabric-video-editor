@@ -99,8 +99,8 @@ export const Editor = () => {
                   );
                   console.log(videoElement);
                   setEditorElements([...editorElements, {
-                    id: "1",
-                    name: "video",
+                    id: getUid(),
+                    name: `Media(video) ${index+1}`,
                     type: "video",
                     placement: {
                       x: 0,
@@ -156,11 +156,41 @@ export const Editor = () => {
         id="canvas"
         className="h-[500px] w-[800px] row col-start-3"
       />
-      <div className="bg-slate-400 col-start-4 row-start-1">elements</div>
+      <div className="bg-slate-400 col-start-4 row-start-1">
+        {/* Heading for elements */}
+        <div className="flex flex-row justify-between">
+          <div>Elements</div>
+          </div>
+        <div className="flex flex-col">
+          {editorElements.map((element) => {
+            return (
+              <div className="flex flex-row justify-between" key={element.id}>
+                <div>{element.name}</div>
+                <div>
+                  <button
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-[100px]"
+                    onClick={() => {
+                      setEditorElements(
+                        editorElements.filter((e) => e.id !== element.id)
+                      );
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          </div>
+      </div>
       <div className="bg-slate-500 col-start-3 row-start-2 col-span-2">time line</div>
     </div>
   );
 };
+
+function getUid() {
+  return Math.random().toString(36).substring(2, 9);
+}
 
 function isHtmlVideoElement(
   element:
