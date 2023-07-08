@@ -3,6 +3,7 @@
 import { fabric } from "fabric";
 import { Canvas } from "fabric/fabric-impl";
 import { useState, useEffect } from "react";
+import { SeekPlayer } from "./SeekPlayer";
 
 export type Placement = {
   x: number;
@@ -57,12 +58,11 @@ export const Editor = () => {
     canvas.remove(...canvas.getObjects());
       for(const element of editorElements){
         switch(element.type){
-          case "video":
+          case "video":{
             const videoElement = getHtmlVideoElement(
               document.getElementById(element.properties.elementId)
             );
             const videoObject = new fabric.Image(videoElement, {
-              // backgroundColor: "red",
               left: element.placement.x,
               top: element.placement.y,
               objectCaching: false,
@@ -75,6 +75,7 @@ export const Editor = () => {
             canvas.add(videoObject);
             console.log(videoObject)
             break;
+          }
           case "image": {
             throw new Error("Not implemented")
           };
@@ -188,8 +189,17 @@ export const Editor = () => {
       </div>
       <div className="bg-slate-500 col-start-3 row-start-2 col-span-2">
         {/* Heading for timeline */}
-        <div className="flex flex-row justify-between">
+        <div className="flex flex-col justify-between">
           <div>Timeline</div>
+          <SeekPlayer maxTime={maxTime} onSeek={(seek)=>{
+            editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
+            .forEach((element)=>{
+              const video = document.getElementById(element.properties.elementId);
+              if(isHtmlVideoElement(video)){
+                video.currentTime = seek/1000;
+              }
+            })
+          }} />
         </div>
         <div id="timeframes-container">
         {editorElements.map((element) => {
