@@ -29,40 +29,18 @@ export type EditorElementBase<T extends string,P> = {
   properties: P;
 }
 
-export type EditorElement = EditorElementBase<"video",{ elementId:string, imageObject?: fabric.Image }> | EditorElementBase<"image",{ src: string }>;
+export type EditorElement = EditorElementBase<"video",{ src:string, elementId:string, imageObject?: fabric.Image }> | EditorElementBase<"image",{ src: string }>;
 
-export const Editor = () => {
-  const [canvas, setCanvas] = useState<Canvas | null>(null);
-  const [videos, setVideos] = useState<string[]>([]);
-  const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
-  const [maxTime, setMaxTime] = useState<number>(60*1000);
-  // @ts-ignore
-  const widthsOfTimeFrameContainer = document.getElementById("timeframes-container")?.clientWidth ?? 200;
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    setVideos([...videos, URL.createObjectURL(file)]);
-  };
-  useEffect(() => {
-    const canvas = new fabric.Canvas("canvas", {
-      height: 500,
-      width: 800,
-      backgroundColor: "#ededed",
-    });
-    setCanvas(canvas);
-    fabric.util.requestAnimFrame(function render() {
-      canvas.renderAll();
-      fabric.util.requestAnimFrame(render);
-    });
-  }, []);
-  useEffect(() => {
+function refreshElements(canvas:fabric.Canvas|null, editorElements: EditorElement[], setEditorElements: (elements: EditorElement[])=>void){
     if (!canvas) return;
     canvas.remove(...canvas.getObjects());
       for(let index = 0; index < editorElements.length; index++){
         const element = editorElements[index];
         switch(element.type){
           case "video":{
+            console.log("elementid", element.properties.elementId)
+            if(document.getElementById(element.properties.elementId) == null) continue;
             const videoElement = getHtmlVideoElement(
               document.getElementById(element.properties.elementId)
             );
@@ -130,16 +108,43 @@ export const Editor = () => {
           };
         }
       }
-  }, [editorElements]);
+}
+
+export const Editor = () => {
+  const [canvas, setCanvas] = useState<Canvas | null>(null);
+  const [videos, setVideos] = useState<string[]>([]);
+  const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
+  const [maxTime, setMaxTime] = useState<number>(60*1000);
+  // @ts-ignore
+  const widthsOfTimeFrameContainer = document.getElementById("timeframes-container")?.clientWidth ?? 200;
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setVideos([...videos, URL.createObjectURL(file)]);
+  };
+  useEffect(() => {
+    const canvas = new fabric.Canvas("canvas", {
+      height: 500,
+      width: 800,
+      backgroundColor: "#ededed",
+    });
+    setCanvas(canvas);
+    fabric.util.requestAnimFrame(function render() {
+      canvas.renderAll();
+      fabric.util.requestAnimFrame(render);
+    });
+  }, []);
+  useEffect( ()=> refreshElements(canvas,editorElements,setEditorElements) , [editorElements]);
   return (
     <div className="grid grid-rows-[500px_1fr] grid-cols-[60px_200px_800px_1fr] h-[100%]">
       <div className="tile row-span-2 bg-slate-400">Menu</div>
-      <div className="row-span-2 flex flex-col bg-slate-200">
+      <div className="row-span-2 flex flex-col bg-slate-200 overflow-auto">
         {videos.map((video, index) => {
           return (
-            <div key={index} className="rounded bg-slate-800 m-4 flex flex-col">
+            <div key={index} className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col">
               <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-[100px]"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1  w-full"
                 onClick={() => {
                   if (!canvas) return;
                   const videoElement = getHtmlVideoElement(
@@ -147,8 +152,9 @@ export const Editor = () => {
                   );
                   const videoDurationMs = videoElement.duration * 1000;
                   const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+                  const id = getUid();
                   setEditorElements([...editorElements, {
-                    id: getUid(),
+                    id,
                     name: `Media(video) ${index+1}`,
                     type: "video",
                     placement: {
@@ -165,15 +171,16 @@ export const Editor = () => {
                       end: videoDurationMs,
                     },
                     properties: {
-                      elementId: `video-${index}`,
-                      // src: videoElement.src,
+                      elementId: `video-${id}`,
+                      src: videoElement.src,
                     },
                   }])
                 }}
               >
-                Add
+                Use -{">"}
               </button>
               <video
+              className="max-h-[150px] max-w-[150px]"
                 src={video}
                 height={200}
                 width={200}
@@ -215,20 +222,32 @@ export const Editor = () => {
         <div className="flex flex-col">
           {editorElements.map((element) => {
             return (
-              <div className="flex flex-row justify-between" key={element.id}>
+              <div className="flex flex-row justify-between items-center" key={element.id}>
                 <div>{element.name}</div>
                 <div>
+                  {
+                    element.type === "video" ?
+                    <video
+                    className="opacity-0"
+                    src={element.properties.src}
+                    onLoad={()=>{refreshElements(canvas,editorElements,setEditorElements)}}
+                    onLoadedData={()=>{refreshElements(canvas,editorElements,setEditorElements)}}
+                    height={20}
+                    width={20}
+                    id={element.properties.elementId}
+                    ></video> : null
+                  }
+                </div>
                   <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-[100px]"
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-1 rounded w-[30px]"
                     onClick={() => {
                       setEditorElements(
                         editorElements.filter((e) => e.id !== element.id)
                       );
                     }}
                   >
-                    Remove
+                    X
                   </button>
-                </div>
               </div>
             );
           })}
