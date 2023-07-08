@@ -2,7 +2,7 @@
 
 import { fabric } from "fabric";
 import { Canvas } from "fabric/fabric-impl";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
 
 export type Placement = {
@@ -147,13 +147,10 @@ export const Editor = () => {
   const [canvas, setCanvas] = useState<Canvas | null>(null);
   const [videos, setVideos] = useState<string[]>([]);
   const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
-  const [maxTime, setMaxTime] = useState<number>(60*1000);
+  const [maxTime] = useState<number>(60*1000);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  // @ts-ignore
-  const widthsOfTimeFrameContainer = document.getElementById("timeframes-container")?.clientWidth ?? 200;
-
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
+  const handleFileChange = (event:React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
     setVideos([...videos, URL.createObjectURL(file)]);
   };
@@ -171,9 +168,11 @@ export const Editor = () => {
   }, []);
   useEffect( ()=> refreshElements(canvas,editorElements,setEditorElements) , [editorElements]);
   return (
-    <div className="grid grid-rows-[500px_1fr] grid-cols-[60px_200px_800px_1fr] h-[100%]">
+    <div className="grid grid-rows-[50px_500px_1fr] grid-cols-[60px_200px_800px_1fr] h-[100%]">
+      <div className="col-span-4 bg-slate-300">Video Edtior Prototype Created By Amit Digga</div>
       <div className="tile row-span-2 bg-slate-400">Menu</div>
       <div className="row-span-2 flex flex-col bg-slate-200 overflow-auto">
+        <div>Resources</div>
         {videos.map((video, index) => {
           return (
             <div key={index} className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col">
@@ -265,7 +264,7 @@ export const Editor = () => {
         id="canvas"
         className="h-[500px] w-[800px] row col-start-3"
       />
-      <div className="bg-slate-400 col-start-4 row-start-1">
+      <div className="bg-slate-400 col-start-4 row-start-2">
         {/* Heading for elements */}
         <div className="flex flex-row justify-between">
           <div>Elements</div>
@@ -304,11 +303,12 @@ export const Editor = () => {
           })}
           </div>
       </div>
-      <div className="bg-slate-500 col-start-3 row-start-2 col-span-2">
+      <div className="bg-slate-500 col-start-3 row-start-3 col-span-2 relative">
         {/* Heading for timeline */}
         <div className="flex flex-col justify-between">
-          <div>Timeline</div>
+          <div>Timeline (ignore, its very bad)</div>
           <SeekPlayer 
+          key={editorElements.length}
           onPlay={()=>{
             setIsPlaying(true);
             editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
@@ -331,6 +331,7 @@ export const Editor = () => {
           }}
           maxTime={maxTime} 
           onSeek={(seek)=>{
+            document.getElementById("timeframe-indicator")?.style.setProperty("left", `${seek/maxTime * 100}%`);
             editorElements.filter((element): element is EditorElement & {type:'video'}=> element.type === "video")
             .forEach((element)=>{
               const video = document.getElementById(element.properties.elementId);
@@ -349,18 +350,17 @@ export const Editor = () => {
             })
           }} />
         </div>
-        <div id="timeframes-container">
+        <div id="timeframe-indicator" className="w-[2px] bg-red-400 absolute left-0 top-0 bottom-0"></div>
         {editorElements.map((element) => {
-          const pxPerMs = widthsOfTimeFrameContainer / maxTime;
+          const pxPerMs = 100 / maxTime;
           const left = Math.ceil( element.timeFrame.start * pxPerMs);
           const width = Math.ceil((element.timeFrame.end - element.timeFrame.start) * pxPerMs);
           return (
             <div key={element.id}>
-            <div className={`bg-slate-900 h-[20px] pv-[10px]`} style={{width:width,marginLeft:left}}></div>
+              <div className={`bg-slate-800 my-[5px] text-white`} style={{width:`${width}%`,marginLeft:`${left}%`}}>{element.name}</div>
             </div>
           );
         })}
-        </div>
 
       </div>
     </div>
