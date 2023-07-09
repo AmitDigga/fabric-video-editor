@@ -6,8 +6,8 @@ export type Props = {
   // currentTime: number;
   maxTime: number;
   onSeek: (time: number) => void;
-  onPlay: () => void;
-  onPause: () => void;
+  onPlay: (time: number) => void;
+  onPause: (time: number) => void;
 };
 export const SeekPlayer = (props: Props) => {
   const [currentTime, setCurrentTime] = useState<number>(0); // [ms
@@ -39,8 +39,8 @@ export const SeekPlayer = (props: Props) => {
         <button
           className="w-[80px] rounded bg-black text-white px-2 py-2"
           onClick={() => {
-            if (play) props.onPause();
-            else props.onPlay();
+            if (play) props.onPause(currentTime);
+            else props.onPlay(currentTime);
             return setPlay(!play);
           }}
         >

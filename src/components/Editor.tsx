@@ -19,6 +19,12 @@ export type TimeFrame = {
   end: number;
 };
 
+export type AnimationKeyFrame = {
+  id: string;
+  time: number;
+  placement: Placement;
+};
+
 export type EditorElementBase<T extends string, P> = {
   readonly id: string;
   name: string;
@@ -53,6 +59,7 @@ function refreshElements(
           document.getElementById(element.properties.elementId)
         );
         const videoObject = new fabric.Image(videoElement, {
+          name: element.id,
           left: element.placement.x,
           top: element.placement.y,
           angle: element.placement.rotation,
@@ -108,6 +115,7 @@ function refreshElements(
       }
       case "text": {
         const textObject = new fabric.Textbox(element.properties.text, {
+          name: element.id,
           left: element.placement.x,
           top: element.placement.y,
           angle: element.placement.rotation,
@@ -156,6 +164,9 @@ export const Editor = () => {
   const [videos, setVideos] = useState<string[]>([]);
   const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
   const [maxTime] = useState<number>(60 * 1000);
+  const [animationKeyFrames, setAnimationKeyFrames] = useState<
+    AnimationKeyFrame[]
+  >([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -385,8 +396,36 @@ export const Editor = () => {
           <div>Timeline</div>
           <SeekPlayer
             key={editorElements.length}
-            onPlay={() => {
+            onPlay={(time) => {
+              console.log(animationKeyFrames);
+              const keyFrames = animationKeyFrames.filter(
+                (keyFrame) => keyFrame.time >= time
+              );
+
               setIsPlaying(true);
+              editorElements.forEach((element) => {
+                const itsKeyFrame = keyFrames
+                  .filter((keyFrame) => keyFrame.id === element.id)
+                  .sort((a, b) => a.time - b.time);
+                if (itsKeyFrame.length != 2) {
+                  console.log("not enough keyframes");
+                  return;
+                }
+                const startKeyFrame = itsKeyFrame[0];
+                const endKeyFrame = itsKeyFrame[1];
+                const animationDuration = endKeyFrame.time - startKeyFrame.time;
+                const timeToStartAnimation = startKeyFrame.time - time;
+                setTimeout(() => {
+                  const fabricObject = canvas
+                    ?.getObjects()
+                    .find((object) => object.name === element.id);
+                  if (!fabricObject) return;
+                  fabricObject.animate("left", endKeyFrame.placement.x, {
+                    duration: animationDuration,
+                    easing: fabric.util.ease.easeOutCubic,
+                  });
+                }, timeToStartAnimation);
+              });
               editorElements
                 .filter(
                   (element): element is EditorElement & { type: "video" } =>
@@ -461,12 +500,39 @@ export const Editor = () => {
             (element.timeFrame.end - element.timeFrame.start) * pxPerMs
           );
           return (
-            <div key={element.id}>
+            <div key={element.id} className="relative">
               <div
                 className={`bg-slate-800 my-[5px] text-white`}
                 style={{ width: `${width}%`, marginLeft: `${left}%` }}
               >
                 {element.name}
+              </div>
+              <div className="absolute right-0 top-0">
+                <button
+                  onClick={() => {
+                    const time = document.getElementById("timeframe-indicator");
+                    if (time) {
+                      const left = time.style.left;
+                      if (left) {
+                        const timePercentOfMaxTime = parseInt(
+                          left.replace("%", "")
+                        );
+                        const time = (timePercentOfMaxTime / 100) * maxTime;
+                        const keyFrame: AnimationKeyFrame = {
+                          id: element.id,
+                          time: time,
+                          placement: element.placement,
+                        };
+                        setAnimationKeyFrames([
+                          ...animationKeyFrames,
+                          keyFrame,
+                        ]);
+                      }
+                    }
+                  }}
+                >
+                  Record Key Frame
+                </button>
               </div>
             </div>
           );
