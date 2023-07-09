@@ -183,7 +183,43 @@ export const Editor = () => {
       <div className="col-span-4 bg-slate-300">
         Video Edtior Prototype Created By Amit Digga
       </div>
-      <div className="tile row-span-2 bg-slate-400">Menu</div>
+      <div className="tile row-span-2 bg-slate-400 flex flex-col">
+        Menu
+        <button
+          onClick={() => {
+            // save canvas to video
+            const video = document.createElement("video");
+            const canvas = document.getElementById(
+              "canvas"
+            ) as HTMLCanvasElement;
+            const stream = canvas.captureStream();
+            video.srcObject = stream;
+            video.play();
+            const mediaRecorder = new MediaRecorder(stream);
+            const chunks: Blob[] = [];
+            mediaRecorder.ondataavailable = function (e) {
+              console.log("data available");
+              console.log(e.data);
+              chunks.push(e.data);
+            };
+            mediaRecorder.onstop = function (e) {
+              const blob = new Blob(chunks, { type: "video/webm" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "video.webm";
+              a.click();
+            };
+            mediaRecorder.start();
+            setTimeout(() => {
+              mediaRecorder.stop();
+            }, 4000);
+          }}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1  w-full"
+        >
+          Export
+        </button>
+      </div>
       <div className="row-span-2 flex flex-col bg-slate-200 overflow-auto">
         <div>Resources</div>
         {videos.map((video, index) => {
