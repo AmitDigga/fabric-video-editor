@@ -340,15 +340,7 @@ export const Editor = observer(() => {
         {/* Heading for timeline */}
         <div className="flex flex-col justify-between">
           <div>Timeline</div>
-          <SeekPlayer
-            key={store.editorElements.length}
-            onPlay={(time) => store.handlePlay(time)}
-            onPause={(time) => store.handlePause(time)}
-            maxTime={store.maxTime}
-            onSeek={(seek) => {
-              store.handleSeek(seek);
-            }}
-          />
+          <SeekPlayer />
         </div>
         <div
           id="timeframe-indicator"

@@ -47,8 +47,10 @@ export class Store {
   editorElements: EditorElement[] 
   maxTime: number 
   animationKeyFrames: AnimationKeyFrame[]
-
   playing: boolean;
+
+  currentKeyFrame:number;
+  fps:number;
 
   constructor() {
     this.canvas = null;
@@ -57,7 +59,17 @@ export class Store {
     this.maxTime = 60 * 1000;
     this.animationKeyFrames = [];
     this.playing = false;
+    this.currentKeyFrame = 0;
+    this.fps = 60;
     makeAutoObservable(this);
+  }
+
+  get currentTimeInMs(){
+    return this.currentKeyFrame * 1000 / this.fps;
+  }
+
+  setCurrentTimeInMs(time:number){
+    this.currentKeyFrame = Math.floor(time /1000 * this.fps);
   }
 
   setCanvas(canvas: fabric.Canvas | null) {
@@ -105,6 +117,36 @@ export class Store {
 
   setPlaying(playing: boolean) {
     this.playing = playing;
+    if(playing){
+      this.handlePlay()
+      this.startedTime = Date.now();
+      this.startedTimePlay = this.currentTimeInMs
+      requestAnimationFrame(()=>{
+        this.playFrames();
+      });
+    }else{
+      this.handlePause()
+    }
+  }
+
+  startedTime = 0;
+  startedTimePlay = 0;
+
+  playFrames(){
+    if(!this.playing){
+      return;
+    }
+    const elapsedTime = Date.now() - this.startedTime;
+    this.setCurrentTimeInMs(this.startedTimePlay+ elapsedTime);
+    const newTime = this.currentTimeInMs;
+    if(newTime > this.maxTime){
+      this.currentKeyFrame = 0;
+      this.setPlaying(false);
+    }else{
+      requestAnimationFrame(()=>{
+        this.playFrames();
+      });
+    }
   }
 
   addVideo(index:number) {
@@ -169,13 +211,12 @@ export class Store {
     );
   } 
  handlePlay(
-  time: number,
 ) {
+  const time = this.currentTimeInMs;
   const keyFrames = this.animationKeyFrames.filter(
     (keyFrame) => keyFrame.time >= time
   );
 
-  this.setPlaying(true);
   this.editorElements.forEach((element) => {
     const itsKeyFrame = keyFrames
       .filter((keyFrame) => keyFrame.id === element.id)
@@ -212,10 +253,7 @@ export class Store {
     });
 }
 
- handlePause(
-  time:number
-) {
-  this.setPlaying(false);
+ handlePause() {
   this.editorElements
     .filter(
       (element): element is EditorElement & { type: "video" } =>
@@ -232,6 +270,10 @@ export class Store {
  handleSeek(
   seek: number,
 ) {
+  if(this.playing){
+    this.setPlaying(false);
+  }
+  this.setCurrentTimeInMs(seek);
   document
     .getElementById("timeframe-indicator")
     ?.style.setProperty("left", `${(seek / this.maxTime) * 100}%`);
@@ -259,5 +301,4 @@ export class Store {
       }
     });
 }
-
 }
