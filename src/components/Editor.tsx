@@ -1,27 +1,33 @@
 "use client";
 
 import { fabric } from "fabric";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
-import { AnimationKeyFrame, EditorElement, Placement } from "@/store/Store";
+import {
+  AnimationKeyFrame,
+  EditorElement,
+  Placement,
+  Store,
+} from "@/store/Store";
+import { StoreContext } from "@/store";
+import { isHtmlVideoElement } from "@/utils";
+import { observer } from "mobx-react";
 
-function refreshElements(
-  canvas: fabric.Canvas | null,
-  editorElements: EditorElement[],
-  setEditorElements: (elements: EditorElement[]) => void
-) {
-  if (!canvas) return;
-  canvas.remove(...canvas.getObjects());
-  for (let index = 0; index < editorElements.length; index++) {
-    const element = editorElements[index];
+function refreshElements(store: Store) {
+  if (!store.canvas) return;
+  const canvas = store.canvas;
+  store.canvas.remove(...store.canvas.getObjects());
+  for (let index = 0; index < store.editorElements.length; index++) {
+    const element = store.editorElements[index];
     switch (element.type) {
       case "video": {
         console.log("elementid", element.properties.elementId);
         if (document.getElementById(element.properties.elementId) == null)
           continue;
-        const videoElement = getHtmlVideoElement(
-          document.getElementById(element.properties.elementId)
+        const videoElement = document.getElementById(
+          element.properties.elementId
         );
+        if (!isHtmlVideoElement(videoElement)) continue;
         const videoObject = new fabric.Image(videoElement, {
           name: element.id,
           left: element.placement.x,
@@ -71,9 +77,7 @@ function refreshElements(
             ...element,
             placement: newPlacement,
           };
-          const newEditorElements = [...editorElements];
-          newEditorElements[index] = newElement;
-          setEditorElements(newEditorElements);
+          store.updateEditorElement(newElement);
         });
         break;
       }
@@ -110,9 +114,7 @@ function refreshElements(
               text: target?.text,
             },
           };
-          const newEditorElements = [...editorElements];
-          newEditorElements[index] = newElement;
-          setEditorElements(newEditorElements);
+          store.updateEditorElement(newElement);
         });
         break;
       }
@@ -120,6 +122,7 @@ function refreshElements(
         throw new Error("Not implemented");
       }
     }
+    store.canvas.renderAll();
   }
 }
 
@@ -150,87 +153,9 @@ export function saveCanvasToVideo() {
   }, 4000);
 }
 
-export function addVideo(
-  canvas: fabric.Canvas | null,
-  editorElements: EditorElement[],
-  setEditorElements: (elements: EditorElement[]) => void,
-  index: number
-) {
-  if (!canvas) return;
-  const videoElement = getHtmlVideoElement(
-    document.getElementById(`video-${index}`)
-  );
-  const videoDurationMs = videoElement.duration * 1000;
-  const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
-  const id = getUid();
-  setEditorElements([
-    ...editorElements,
-    {
-      id,
-      name: `Media(video) ${index + 1}`,
-      type: "video",
-      placement: {
-        x: 0,
-        y: 0,
-        width: 100 * aspectRatio,
-        height: 100,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-      },
-      timeFrame: {
-        start: 0,
-        end: videoDurationMs,
-      },
-      properties: {
-        elementId: `video-${id}`,
-        src: videoElement.src,
-      },
-    },
-  ]);
-}
-
-export function addText(
-  canvas: fabric.Canvas | null,
-  editorElements: EditorElement[],
-  setEditorElements: (elements: EditorElement[]) => void,
-  index: number
-) {
-  if (!canvas) return;
-  const id = getUid();
-  setEditorElements([
-    ...editorElements,
-    {
-      id,
-      name: `Text ${index + 1}`,
-      type: "text",
-      placement: {
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 100,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-      },
-      timeFrame: {
-        start: 0,
-        end: 1000,
-      },
-      properties: {
-        text: "Text",
-      },
-    },
-  ]);
-}
-
-function Element(props: {
-  element: EditorElement;
-  canvas: fabric.Canvas | null;
-  editorElements: EditorElement[];
-  setEditorElements: (elements: EditorElement[]) => void;
-}) {
-  const { element, canvas, editorElements, setEditorElements } = props;
+const Element = observer((props: { element: EditorElement }) => {
+  const store = React.useContext(StoreContext);
+  const { element } = props;
   return (
     <div
       className="flex flex-row justify-between items-center max-h-[50px]"
@@ -243,10 +168,10 @@ function Element(props: {
             className="opacity-0"
             src={element.properties.src}
             onLoad={() => {
-              refreshElements(canvas, editorElements, setEditorElements);
+              refreshElements(store);
             }}
             onLoadedData={() => {
-              refreshElements(canvas, editorElements, setEditorElements);
+              refreshElements(store);
             }}
             height={20}
             width={20}
@@ -257,40 +182,28 @@ function Element(props: {
       <button
         className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-1 rounded w-[30px]"
         onClick={() => {
-          setEditorElements(editorElements.filter((e) => e.id !== element.id));
+          store.removeEditorElement(element.id);
+          refreshElements(store);
         }}
       >
         X
       </button>
     </div>
   );
-}
-
+});
 type VideoResourceProps = {
   video: string;
   index: number;
-  canvas: fabric.Canvas | null;
-  editorElements: EditorElement[];
-  setEditorElements: (elements: EditorElement[]) => void;
 };
 
-function VideoResource({
-  video,
-  index,
-  canvas,
-  editorElements,
-  setEditorElements,
-}: VideoResourceProps) {
+const VideoResource = observer(({ video, index }: VideoResourceProps) => {
+  const store = React.useContext(StoreContext);
+
   return (
-    <div
-      key={index}
-      className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col"
-    >
+    <div className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col">
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1  w-full"
-        onClick={() =>
-          addVideo(canvas, editorElements, setEditorElements, index)
-        }
+        onClick={() => store.addVideo(index)}
       >
         Use -{">"}
       </button>
@@ -303,118 +216,12 @@ function VideoResource({
       ></video>
     </div>
   );
-}
+});
 
-function handlePlay(
-  time: number,
-  animationKeyFrames: AnimationKeyFrame[],
-  editorElements: EditorElement[],
-  setIsPlaying: (isPlaying: boolean) => void,
-  canvas: fabric.Canvas | null
-) {
-  console.log(animationKeyFrames);
-  const keyFrames = animationKeyFrames.filter(
-    (keyFrame) => keyFrame.time >= time
-  );
-
-  setIsPlaying(true);
-  editorElements.forEach((element) => {
-    const itsKeyFrame = keyFrames
-      .filter((keyFrame) => keyFrame.id === element.id)
-      .sort((a, b) => a.time - b.time);
-    if (itsKeyFrame.length != 2) {
-      console.log("not enough keyframes");
-      return;
-    }
-    const startKeyFrame = itsKeyFrame[0];
-    const endKeyFrame = itsKeyFrame[1];
-    const animationDuration = endKeyFrame.time - startKeyFrame.time;
-    const timeToStartAnimation = startKeyFrame.time - time;
-    setTimeout(() => {
-      const fabricObject = canvas
-        ?.getObjects()
-        .find((object) => object.name === element.id);
-      if (!fabricObject) return;
-      fabricObject.animate("left", endKeyFrame.placement.x, {
-        duration: animationDuration,
-        easing: fabric.util.ease.easeOutCubic,
-      });
-    }, timeToStartAnimation);
-  });
-  editorElements
-    .filter(
-      (element): element is EditorElement & { type: "video" } =>
-        element.type === "video"
-    )
-    .forEach((element) => {
-      const video = document.getElementById(element.properties.elementId);
-      if (isHtmlVideoElement(video)) {
-        video.play();
-      }
-    });
-}
-
-function handlePause(
-  time: number,
-  editorElements: EditorElement[],
-  setIsPlaying: (isPlaying: boolean) => void
-) {
-  setIsPlaying(false);
-  editorElements
-    .filter(
-      (element): element is EditorElement & { type: "video" } =>
-        element.type === "video"
-    )
-    .forEach((element) => {
-      const video = document.getElementById(element.properties.elementId);
-      if (isHtmlVideoElement(video)) {
-        video.pause();
-      }
-    });
-}
-
-function handleSeek(
-  seek: number,
-  editorElements: EditorElement[],
-  isPlaying: boolean,
-  maxTime: number
-) {
-  document
-    .getElementById("timeframe-indicator")
-    ?.style.setProperty("left", `${(seek / maxTime) * 100}%`);
-  editorElements
-    .filter(
-      (element): element is EditorElement & { type: "video" } =>
-        element.type === "video"
-    )
-    .forEach((element) => {
-      const video = document.getElementById(element.properties.elementId);
-      if (isHtmlVideoElement(video)) {
-        if (element.properties.imageObject) {
-          if (
-            seek >= element.timeFrame.start &&
-            seek <= element.timeFrame.end
-          ) {
-            element.properties.imageObject.set({ opacity: 1 });
-          } else {
-            element.properties.imageObject.set({ opacity: 0 });
-          }
-          if (!isPlaying) {
-            video.currentTime = seek / 1000;
-          }
-        }
-      }
-    });
-}
-
-export const TimeFrameView = (props: {
-  element: EditorElement;
-  maxTime: number;
-  animationKeyFrames: AnimationKeyFrame[];
-  setAnimationKeyFrames: (keyFrames: AnimationKeyFrame[]) => void;
-}) => {
-  const { element, maxTime, animationKeyFrames, setAnimationKeyFrames } = props;
-  const pxPerMs = 100 / maxTime;
+export const TimeFrameView = observer((props: { element: EditorElement }) => {
+  const store = React.useContext(StoreContext);
+  const { element } = props;
+  const pxPerMs = 100 / store.maxTime;
   const left = Math.ceil(element.timeFrame.start * pxPerMs);
   const width = Math.ceil(
     (element.timeFrame.end - element.timeFrame.start) * pxPerMs
@@ -435,13 +242,16 @@ export const TimeFrameView = (props: {
               const left = time.style.left;
               if (left) {
                 const timePercentOfMaxTime = parseInt(left.replace("%", ""));
-                const time = (timePercentOfMaxTime / 100) * maxTime;
+                const time = (timePercentOfMaxTime / 100) * store.maxTime;
                 const keyFrame: AnimationKeyFrame = {
                   id: element.id,
                   time: time,
                   placement: element.placement,
                 };
-                setAnimationKeyFrames([...animationKeyFrames, keyFrame]);
+                store.setAnimationKeyFrames([
+                  ...store.animationKeyFrames,
+                  keyFrame,
+                ]);
               }
             }
           }}
@@ -451,22 +261,15 @@ export const TimeFrameView = (props: {
       </div>
     </div>
   );
-};
+});
 
-export const Editor = () => {
-  // const store = React.useContext(StoreContext);
-  const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
-  const [videos, setVideos] = useState<string[]>([]);
-  const [editorElements, setEditorElements] = useState<EditorElement[]>([]);
-  const [maxTime] = useState<number>(60 * 1000);
-  const [animationKeyFrames, setAnimationKeyFrames] = useState<
-    AnimationKeyFrame[]
-  >([]);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+export const Editor = observer(() => {
+  const store = React.useContext(StoreContext);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setVideos([...videos, URL.createObjectURL(file)]);
+    store.addVideoResource(URL.createObjectURL(file));
+    refreshElements(store);
   };
   useEffect(() => {
     const canvas = new fabric.Canvas("canvas", {
@@ -474,16 +277,12 @@ export const Editor = () => {
       width: 800,
       backgroundColor: "#ededed",
     });
-    setCanvas(canvas);
+    store.setCanvas(canvas);
     fabric.util.requestAnimFrame(function render() {
       canvas.renderAll();
       fabric.util.requestAnimFrame(render);
     });
   }, []);
-  useEffect(
-    () => refreshElements(canvas, editorElements, setEditorElements),
-    [editorElements, canvas]
-  );
   return (
     <div className="grid grid-rows-[50px_500px_1fr] grid-cols-[60px_200px_800px_1fr] h-[100%]">
       <div className="col-span-4 bg-slate-300">
@@ -500,17 +299,8 @@ export const Editor = () => {
       </div>
       <div className="row-span-2 flex flex-col bg-slate-200 overflow-auto">
         <div>Resources</div>
-        {videos.map((video, index) => {
-          return (
-            <VideoResource
-              key={video}
-              video={video}
-              index={index}
-              canvas={canvas}
-              editorElements={editorElements}
-              setEditorElements={setEditorElements}
-            />
-          );
+        {store.videos.map((video, index) => {
+          return <VideoResource key={video} video={video} index={index} />;
         })}
         <label
           htmlFor="fileInput"
@@ -527,14 +317,10 @@ export const Editor = () => {
         </label>
         <button
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
-          onClick={() =>
-            addText(
-              canvas,
-              editorElements,
-              setEditorElements,
-              editorElements.length
-            )
-          }
+          onClick={() => {
+            store.addText();
+            refreshElements(store);
+          }}
         >
           Add Text
         </button>
@@ -545,16 +331,8 @@ export const Editor = () => {
           <div>Elements</div>
         </div>
         <div className="flex flex-col">
-          {editorElements.map((element) => {
-            return (
-              <Element
-                key={element.id}
-                element={element}
-                canvas={canvas}
-                editorElements={editorElements}
-                setEditorElements={setEditorElements}
-              />
-            );
+          {store.editorElements.map((element) => {
+            return <Element key={element.id} element={element} />;
           })}
         </div>
       </div>
@@ -563,22 +341,12 @@ export const Editor = () => {
         <div className="flex flex-col justify-between">
           <div>Timeline</div>
           <SeekPlayer
-            key={editorElements.length}
-            onPlay={(time) =>
-              handlePlay(
-                time,
-                animationKeyFrames,
-                editorElements,
-                setIsPlaying,
-                canvas
-              )
-            }
-            onPause={(time) => {
-              handlePause(time, editorElements, setIsPlaying);
-            }}
-            maxTime={maxTime}
+            key={store.editorElements.length}
+            onPlay={(time) => store.handlePlay(time)}
+            onPause={(time) => store.handlePause(time)}
+            maxTime={store.maxTime}
             onSeek={(seek) => {
-              handleSeek(seek, editorElements, isPlaying, maxTime);
+              store.handleSeek(seek);
             }}
           />
         </div>
@@ -586,59 +354,10 @@ export const Editor = () => {
           id="timeframe-indicator"
           className="w-[2px] bg-red-400 absolute left-0 top-0 bottom-0"
         ></div>
-        {editorElements.map((element) => {
-          return (
-            <TimeFrameView
-              key={element.id}
-              element={element}
-              maxTime={maxTime}
-              animationKeyFrames={animationKeyFrames}
-              setAnimationKeyFrames={setAnimationKeyFrames}
-            />
-          );
+        {store.editorElements.map((element) => {
+          return <TimeFrameView key={element.id} element={element} />;
         })}
       </div>
     </div>
   );
-};
-
-function getUid() {
-  return Math.random().toString(36).substring(2, 9);
-}
-
-function isHtmlVideoElement(
-  element:
-    | HTMLVideoElement
-    | HTMLImageElement
-    | HTMLCanvasElement
-    | null
-    | HTMLElement
-): element is HTMLVideoElement {
-  if (!element) return false;
-  return element.tagName === "VIDEO";
-}
-function isHtmlImageElement(
-  element:
-    | HTMLVideoElement
-    | HTMLImageElement
-    | HTMLCanvasElement
-    | null
-    | HTMLElement
-): element is HTMLImageElement {
-  if (!element) return false;
-  return element.tagName === "IMG";
-}
-
-function getHtmlVideoElement(
-  element:
-    | HTMLVideoElement
-    | HTMLImageElement
-    | HTMLCanvasElement
-    | null
-    | HTMLElement
-): HTMLVideoElement {
-  if (!isHtmlVideoElement(element)) {
-    throw new Error("Element is not a video element");
-  }
-  return element;
-}
+});
