@@ -3,43 +3,7 @@
 import { fabric } from "fabric";
 import React, { useState, useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
-
-export type Placement = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  scaleX: number;
-  scaleY: number;
-};
-
-export type TimeFrame = {
-  start: number;
-  end: number;
-};
-
-export type AnimationKeyFrame = {
-  id: string;
-  time: number;
-  placement: Placement;
-};
-
-export type EditorElementBase<T extends string, P> = {
-  readonly id: string;
-  name: string;
-  readonly type: T;
-  placement: Placement;
-  timeFrame: TimeFrame;
-  properties: P;
-};
-
-export type EditorElement =
-  | EditorElementBase<
-      "video",
-      { src: string; elementId: string; imageObject?: fabric.Image }
-    >
-  | EditorElementBase<"text", { text: string }>;
+import { AnimationKeyFrame, EditorElement, Placement } from "@/store/Store";
 
 function refreshElements(
   canvas: fabric.Canvas | null,

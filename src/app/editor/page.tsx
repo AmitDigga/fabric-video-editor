@@ -1,7 +1,12 @@
+import { StoreProvider } from "@/store";
 import { Editor } from "../../components/Editor";
 
 function EditorPage() {
-  return <Editor></Editor>;
+  return (
+    <StoreProvider>
+      <Editor></Editor>;
+    </StoreProvider>
+  );
 }
 
 EditorPage.diplsayName = "EditorPage";
