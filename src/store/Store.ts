@@ -45,7 +45,9 @@ export class Store {
   videos: string[] 
   editorElements: EditorElement[] 
   maxTime: number 
-  animationKeyFrames: AnimationKeyFrame[] 
+  animationKeyFrames: AnimationKeyFrame[]
+
+  playing: boolean;
 
   constructor() {
     this.canvas = null;
@@ -53,6 +55,7 @@ export class Store {
     this.editorElements = [];
     this.maxTime = 60 * 1000;
     this.animationKeyFrames = [];
+    this.playing = false;
     makeAutoObservable(this);
   }
 
@@ -75,6 +78,8 @@ export class Store {
   setAnimationKeyFrames(animationKeyFrames: AnimationKeyFrame[]) {
     this.animationKeyFrames = animationKeyFrames;
   }
-}
 
-export default new Store();
+  setPlaying(playing: boolean) {
+    this.playing = playing;
+  }
+}
