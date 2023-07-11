@@ -274,22 +274,14 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
       <div className="absolute right-0 top-0">
         <button
           onClick={() => {
-            const time = document.getElementById("timeframe-indicator");
-            if (time) {
-              const left = time.style.left;
-              if (left) {
-                const timePercentOfMaxTime = parseInt(left.replace("%", ""));
-                const time = (timePercentOfMaxTime / 100) * store.maxTime;
-                store.addAnimation({
-                  id: getUid(),
-                  targetId: element.id,
-                  endTime: time,
-                  easing: "linear",
-                  targetProperty: "left",
-                  targetValue: element.placement.x,
-                });
-              }
-            }
+            store.addAnimation({
+              id: getUid(),
+              targetId: element.id,
+              endTime: store.currentTimeInMs,
+              easing: "linear",
+              targetProperty: "left",
+              targetValue: element.placement.x,
+            });
           }}
         >
           Record Key Frame
@@ -301,12 +293,15 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
 
 export const TimeLine = observer(() => {
   const store = React.useContext(StoreContext);
+  const percentOfCurrentTime = (store.currentTimeInMs / store.maxTime) * 100;
   return (
     <>
       <SeekPlayer />
       <div
-        id="timeframe-indicator"
         className="w-[2px] bg-red-400 absolute left-0 top-0 bottom-0"
+        style={{
+          left: `${percentOfCurrentTime}%`,
+        }}
       ></div>
       {store.editorElements.map((element) => {
         return <TimeFrameView key={element.id} element={element} />;

@@ -313,9 +313,6 @@ export class Store {
   }
   // this.setCurrentTimeInMs(seek);
   this.updateTimeTo(seek);
-  document
-    .getElementById("timeframe-indicator")
-    ?.style.setProperty("left", `${(seek / this.maxTime) * 100}%`);
   this.editorElements
     .filter(
       (element): element is EditorElement & { type: "video" } =>
