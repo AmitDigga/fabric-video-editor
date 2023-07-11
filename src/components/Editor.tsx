@@ -3,12 +3,7 @@
 import { fabric } from "fabric";
 import React, { useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
-import {
-  AnimationKeyFrame,
-  EditorElement,
-  Placement,
-  Store,
-} from "@/store/Store";
+import { EditorElement, Placement, Store } from "@/store/Store";
 import { StoreContext } from "@/store";
 import { getUid, isHtmlVideoElement } from "@/utils";
 import { observer } from "mobx-react";
@@ -278,6 +273,12 @@ export const Editor = observer(() => {
       width: 800,
       backgroundColor: "#ededed",
     });
+    fabric.Object.prototype.transparentCorners = false;
+    fabric.Object.prototype.cornerColor = "#00a0f5";
+    fabric.Object.prototype.cornerStyle = "circle";
+    fabric.Object.prototype.cornerStrokeColor = "#0063d8";
+    fabric.Object.prototype.cornerSize = 10;
+
     store.setCanvas(canvas);
     fabric.util.requestAnimFrame(function render() {
       canvas.renderAll();
