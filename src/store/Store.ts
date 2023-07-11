@@ -1,9 +1,11 @@
 import { makeAutoObservable } from 'mobx';
 import { fabric } from 'fabric';
 import { getUid, isHtmlVideoElement } from '@/utils';
+import anime, { timeline } from 'animejs';
 
 export type EditorElementBase<T extends string, P> = {
   readonly id: string;
+  fabricObject?: fabric.Object;
   name: string;
   readonly type: T;
   placement: Placement;
@@ -39,6 +41,15 @@ export type AnimationKeyFrame = {
   placement: Placement;
 };
 
+export type Animation = {
+  id: string;
+  targetId: string;
+  endTime: number;
+  easing: 'linear';
+  targetProperty: keyof fabric.Object;
+  targetValue: number;
+  delay? : number;
+}
 
 
 export class Store {
@@ -46,7 +57,8 @@ export class Store {
   videos: string[] 
   editorElements: EditorElement[] 
   maxTime: number 
-  animationKeyFrames: AnimationKeyFrame[]
+  animations: Animation[]
+  animationTimeLine: anime.AnimeTimelineInstance;
   playing: boolean;
 
   currentKeyFrame:number;
@@ -57,10 +69,11 @@ export class Store {
     this.videos = [];
     this.editorElements = [];
     this.maxTime = 60 * 1000;
-    this.animationKeyFrames = [];
     this.playing = false;
     this.currentKeyFrame = 0;
     this.fps = 60;
+    this.animations = [];
+    this.animationTimeLine = anime.timeline();
     makeAutoObservable(this);
   }
 
@@ -82,6 +95,49 @@ export class Store {
 
   addVideoResource(video: string) {
     this.videos = [...this.videos, video];
+  }
+
+  addAnimation(animation: Animation) {
+    this.animations = [...this.animations, animation];
+    this.refreshAnimations();
+  }
+
+  refreshAnimations(){
+    this.animations.sort((a,b) => a.endTime - b.endTime);
+    anime.remove(this.animationTimeLine);
+    this.animationTimeLine = anime.timeline({
+      duration: this.maxTime,
+      autoplay: false,
+    });
+    for(let i = 0; i < this.animations.length; i++){
+      const animation = this.animations[i];
+      const editorElement = this.editorElements.find((element) => element.id === animation.targetId);
+      const lastAnimationWithSameTarget = this.animations.slice(0,i).reverse().find((anim) => anim.targetId === animation.targetId);
+      let proprtyStartValue = 0;
+      let startTime = 0;
+      if(lastAnimationWithSameTarget){
+        proprtyStartValue = lastAnimationWithSameTarget.targetValue;
+        startTime = lastAnimationWithSameTarget.endTime;
+      }
+
+      const fabricObject = editorElement?.fabricObject;
+      if(!editorElement || !fabricObject){
+        continue;
+      }
+      this.animationTimeLine.add({
+        targets: fabricObject,
+        [animation.targetProperty]: [proprtyStartValue,animation.targetValue],
+        duration: animation.endTime - startTime,
+        easing: animation.easing,
+      },startTime);
+
+    }
+  }
+  removeAnimation(id: string) {
+    this.animations = this.animations.filter(
+      (animation) => animation.id !== id
+    );
+    this.refreshAnimations();
   }
 
 
@@ -111,9 +167,6 @@ export class Store {
     this.maxTime = maxTime;
   }
 
-  setAnimationKeyFrames(animationKeyFrames: AnimationKeyFrame[]) {
-    this.animationKeyFrames = animationKeyFrames;
-  }
 
   setPlaying(playing: boolean) {
     this.playing = playing;
@@ -137,8 +190,8 @@ export class Store {
       return;
     }
     const elapsedTime = Date.now() - this.startedTime;
-    this.setCurrentTimeInMs(this.startedTimePlay+ elapsedTime);
-    const newTime = this.currentTimeInMs;
+    const newTime = this.startedTimePlay+ elapsedTime;
+    this.updateTimeTo(newTime);
     if(newTime > this.maxTime){
       this.currentKeyFrame = 0;
       this.setPlaying(false);
@@ -147,6 +200,10 @@ export class Store {
         this.playFrames();
       });
     }
+  }
+  updateTimeTo(newTime:number){
+    this.setCurrentTimeInMs(newTime);
+    this.animationTimeLine.seek(newTime);
   }
 
   addVideo(index:number) {
@@ -212,34 +269,6 @@ export class Store {
   } 
  handlePlay(
 ) {
-  const time = this.currentTimeInMs;
-  const keyFrames = this.animationKeyFrames.filter(
-    (keyFrame) => keyFrame.time >= time
-  );
-
-  this.editorElements.forEach((element) => {
-    const itsKeyFrame = keyFrames
-      .filter((keyFrame) => keyFrame.id === element.id)
-      .sort((a, b) => a.time - b.time);
-    if (itsKeyFrame.length != 2) {
-      console.log("not enough keyframes");
-      return;
-    }
-    const startKeyFrame = itsKeyFrame[0];
-    const endKeyFrame = itsKeyFrame[1];
-    const animationDuration = endKeyFrame.time - startKeyFrame.time;
-    const timeToStartAnimation = startKeyFrame.time - time;
-    setTimeout(() => {
-      const fabricObject = this.canvas
-        ?.getObjects()
-        .find((object) => object.name === element.id);
-      if (!fabricObject) return;
-      fabricObject.animate("left", endKeyFrame.placement.x, {
-        duration: animationDuration,
-        easing: fabric.util.ease.easeOutCubic,
-      });
-    }, timeToStartAnimation);
-  });
   this.editorElements
     .filter(
       (element): element is EditorElement & { type: "video" } =>
@@ -273,7 +302,8 @@ export class Store {
   if(this.playing){
     this.setPlaying(false);
   }
-  this.setCurrentTimeInMs(seek);
+  // this.setCurrentTimeInMs(seek);
+  this.updateTimeTo(seek);
   document
     .getElementById("timeframe-indicator")
     ?.style.setProperty("left", `${(seek / this.maxTime) * 100}%`);

@@ -10,7 +10,7 @@ import {
   Store,
 } from "@/store/Store";
 import { StoreContext } from "@/store";
-import { isHtmlVideoElement } from "@/utils";
+import { getUid, isHtmlVideoElement } from "@/utils";
 import { observer } from "mobx-react";
 
 function refreshElements(store: Store) {
@@ -37,6 +37,7 @@ function refreshElements(store: Store) {
           selectable: true,
           lockUniScaling: true,
         });
+        element.fabricObject = videoObject;
         element.properties.imageObject = videoObject;
         const video = {
           w: videoElement.videoWidth,
@@ -91,6 +92,7 @@ function refreshElements(store: Store) {
           selectable: true,
           lockUniScaling: true,
         });
+        element.fabricObject = textObject;
         canvas.add(textObject);
         canvas.on("object:modified", function (e) {
           if (!e.target) return;
@@ -243,15 +245,14 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
               if (left) {
                 const timePercentOfMaxTime = parseInt(left.replace("%", ""));
                 const time = (timePercentOfMaxTime / 100) * store.maxTime;
-                const keyFrame: AnimationKeyFrame = {
-                  id: element.id,
-                  time: time,
-                  placement: element.placement,
-                };
-                store.setAnimationKeyFrames([
-                  ...store.animationKeyFrames,
-                  keyFrame,
-                ]);
+                store.addAnimation({
+                  id: getUid(),
+                  targetId: element.id,
+                  endTime: time,
+                  easing: "linear",
+                  targetProperty: "left",
+                  targetValue: element.placement.x,
+                });
               }
             }
           }}
@@ -324,6 +325,9 @@ export const Editor = observer(() => {
         >
           Add Text
         </button>
+        {store.animations.map((animation) => {
+          return <div key={animation.id}>{animation.targetId}</div>;
+        })}
       </div>
       <canvas id="canvas" className="h-[500px] w-[800px] row col-start-3" />
       <div className="bg-slate-400 col-start-4 row-start-2">
