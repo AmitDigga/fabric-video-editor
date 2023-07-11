@@ -51,9 +51,13 @@ export type Animation = {
   delay? : number;
 }
 
+export type MenuOption = 'Video' | 'Text' | 'Image' | 'Export' | 'Animation';
+
 
 export class Store {
   canvas: fabric.Canvas | null 
+
+  selectedMenuOption: MenuOption;
   videos: string[] 
   editorElements: EditorElement[] 
   maxTime: number 
@@ -74,6 +78,7 @@ export class Store {
     this.fps = 60;
     this.animations = [];
     this.animationTimeLine = anime.timeline();
+    this.selectedMenuOption = 'Video';
     makeAutoObservable(this);
   }
 
@@ -83,6 +88,10 @@ export class Store {
 
   setCurrentTimeInMs(time:number){
     this.currentKeyFrame = Math.floor(time /1000 * this.fps);
+  }
+
+  setSelectedMenuOption(selectedMenuOption: MenuOption) {
+    this.selectedMenuOption = selectedMenuOption;
   }
 
   setCanvas(canvas: fabric.Canvas | null) {

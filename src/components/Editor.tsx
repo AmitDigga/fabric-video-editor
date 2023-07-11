@@ -7,6 +7,13 @@ import { EditorElement, Placement, Store } from "@/store/Store";
 import { StoreContext } from "@/store";
 import { getUid, isHtmlVideoElement } from "@/utils";
 import { observer } from "mobx-react";
+import {
+  MdDownload,
+  MdVideoLibrary,
+  MdImage,
+  MdTransform,
+  MdTitle,
+} from "react-icons/md";
 
 function refreshElements(store: Store) {
   if (!store.canvas) return;
@@ -295,20 +302,115 @@ export const TimeLine = observer(() => {
 });
 
 export const Menu = observer(() => {
+  const store = React.useContext(StoreContext);
+  const menuOptions = [
+    {
+      name: "Video",
+      icon: MdVideoLibrary,
+      action: () => {
+        store.setSelectedMenuOption("Video");
+      },
+    },
+    {
+      name: "Text",
+      icon: MdTitle,
+      action: () => {
+        store.setSelectedMenuOption("Text");
+      },
+    },
+    {
+      name: "Image",
+      icon: MdImage,
+      action: () => {
+        store.setSelectedMenuOption("Image");
+      },
+    },
+    {
+      name: "Export",
+      icon: MdDownload,
+      action: () => {
+        store.setSelectedMenuOption("Export");
+      },
+    },
+    {
+      name: "Animation",
+      icon: MdTransform,
+      action: () => {
+        store.setSelectedMenuOption("Animation");
+      },
+    },
+  ];
   return (
     <>
-      Menu
+      {menuOptions.map((option) => {
+        return (
+          <button
+            onClick={option.action}
+            className="py-4 px-2 w-full flex flex-col items-center text-xs"
+          >
+            <option.icon
+              className=""
+              size="20"
+              color={
+                store.selectedMenuOption === option.name ? "#00a0f5" : "black"
+              }
+            />
+            <div
+              className={
+                store.selectedMenuOption === option.name
+                  ? "font-semibold"
+                  : "font-light"
+              }
+            >
+              {option.name}
+            </div>
+          </button>
+        );
+      })}
+    </>
+  );
+});
+
+export const Resources = observer(() => {
+  const store = React.useContext(StoreContext);
+  const selectedMenuOption = store.selectedMenuOption;
+  return (
+    <>
+      {selectedMenuOption === "Video" ? <VideoResources /> : null}
+      {selectedMenuOption === "Text" ? <TextResources /> : null}
+      {selectedMenuOption === "Image" ? <ImageResources /> : null}
+      {selectedMenuOption === "Export" ? <Export /> : null}
+      {selectedMenuOption === "Animation" ? <Animations /> : null}
+    </>
+  );
+});
+export const Animations = observer(() => {
+  const store = React.useContext(StoreContext);
+  return (
+    <>
+      <div className="text-sm px-[16px] py-[7px] font-semibold">Animations</div>
+      {store.animations.map((animation) => {
+        return <div key={animation.id}>{animation.targetId}</div>;
+      })}
+    </>
+  );
+});
+export const Export = observer(() => {
+  return (
+    <>
+      <div className="text-sm px-[16px] py-[7px] font-semibold">Export</div>
       <button
-        onClick={saveCanvasToVideo}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1  w-full"
+        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
+        onClick={() => {
+          saveCanvasToVideo();
+        }}
       >
         Export
       </button>
     </>
   );
 });
-
-export const Resources = observer(() => {
+export const VideoResources = observer(() => {
   const store = React.useContext(StoreContext);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -318,7 +420,7 @@ export const Resources = observer(() => {
   };
   return (
     <>
-      <div>Resources</div>
+      <div className="text-sm px-[16px] py-[7px] font-semibold">Add Video</div>
       {store.videos.map((video, index) => {
         return <VideoResource key={video} video={video} index={index} />;
       })}
@@ -333,8 +435,25 @@ export const Resources = observer(() => {
           className="hidden"
           onChange={handleFileChange}
         />
-        Add Video
+        Upload
       </label>
+    </>
+  );
+});
+export const ImageResources = observer(() => {
+  return (
+    <>
+      <div className="text-sm px-[16px] py-[7px] font-semibold">Add Image</div>
+      <div className="text-center text-sm">Coming Soon</div>
+    </>
+  );
+});
+
+export const TextResources = observer(() => {
+  const store = React.useContext(StoreContext);
+  return (
+    <>
+      <div className="text-sm px-[16px] py-[7px] font-semibold">Add Text</div>
       <button
         className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
         onClick={() => {
@@ -342,11 +461,8 @@ export const Resources = observer(() => {
           refreshElements(store);
         }}
       >
-        Add Text
+        Text
       </button>
-      {store.animations.map((animation) => {
-        return <div key={animation.id}>{animation.targetId}</div>;
-      })}
     </>
   );
 });
@@ -377,7 +493,7 @@ export const Editor = observer(() => {
       <div className="col-span-4 bg-slate-300">
         Video Edtior Prototype Created By Amit Digga
       </div>
-      <div className="tile row-span-2 bg-slate-400 flex flex-col">
+      <div className="tile row-span-2 flex flex-col">
         <Menu />
       </div>
       <div className="row-span-2 flex flex-col bg-slate-200 overflow-auto">
