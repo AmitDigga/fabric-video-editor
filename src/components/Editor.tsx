@@ -530,7 +530,7 @@ export const Editor = observer(() => {
       <div className="col-start-4 row-start-2">
         <Elements />
       </div>
-      <div className="bg-slate-500 col-start-3 row-start-3 col-span-2 relative">
+      <div className="bg-slate-500 col-start-3 row-start-3 col-span-2 relative overflow-scroll">
         <TimeLine />
       </div>
     </div>
