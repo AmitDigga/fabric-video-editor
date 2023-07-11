@@ -72,7 +72,7 @@ export class Store {
     this.canvas = null;
     this.videos = [];
     this.editorElements = [];
-    this.maxTime = 60 * 1000;
+    this.maxTime = 30 * 1000;
     this.playing = false;
     this.currentKeyFrame = 0;
     this.fps = 60;
@@ -268,7 +268,7 @@ export class Store {
         },
         timeFrame: {
           start: 0,
-          end: 1000,
+          end: this.maxTime,
         },
         properties: {
           text: "Text",

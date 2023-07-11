@@ -258,10 +258,9 @@ const VideoResource = observer(({ video, index }: VideoResourceProps) => {
 export const TimeFrameView = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
-  const pxPerMs = 100 / store.maxTime;
-  const left = Math.ceil(element.timeFrame.start * pxPerMs);
-  const width = Math.ceil(
-    (element.timeFrame.end - element.timeFrame.start) * pxPerMs
+  const left = Math.floor((element.timeFrame.start / store.maxTime) * 100);
+  const width = Math.floor(
+    ((element.timeFrame.end - element.timeFrame.start) / store.maxTime) * 100
   );
   return (
     <div key={element.id} className="relative">
