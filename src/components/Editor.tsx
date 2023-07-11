@@ -303,10 +303,7 @@ export const TimeLine = observer(() => {
   const store = React.useContext(StoreContext);
   return (
     <>
-      <div className="flex flex-col justify-between">
-        <div>Timeline</div>
-        <SeekPlayer />
-      </div>
+      <SeekPlayer />
       <div
         id="timeframe-indicator"
         className="w-[2px] bg-red-400 absolute left-0 top-0 bottom-0"
@@ -530,7 +527,7 @@ export const Editor = observer(() => {
       <div className="col-start-4 row-start-2">
         <Elements />
       </div>
-      <div className="bg-slate-500 col-start-3 row-start-3 col-span-2 relative overflow-scroll">
+      <div className="col-start-3 row-start-3 col-span-2 relative overflow-scroll">
         <TimeLine />
       </div>
     </div>
