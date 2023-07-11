@@ -13,6 +13,8 @@ import {
   MdImage,
   MdTransform,
   MdTitle,
+  MdOutlineTextFields,
+  MdMovie,
 } from "react-icons/md";
 
 function refreshElements(store: Store) {
@@ -160,16 +162,20 @@ export function saveCanvasToVideo() {
 const Element = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
+  const Icon = element.type === "video" ? MdMovie : MdOutlineTextFields;
   return (
     <div
-      className="flex flex-row justify-between items-center max-h-[50px]"
+      className="flex py-2 px-1 flex-row justify-start items-center"
       key={element.id}
     >
-      <div className="truncate min-w-[100px]">{element.name}</div>
+      <Icon size="20" color="gray"></Icon>
+      <div className="truncate text-xs ml-2 flex-1 font-medium">
+        {element.name}
+      </div>
       <div>
         {element.type === "video" ? (
           <video
-            className="opacity-0"
+            className="opacity-0 max-w-[20px] max-h-[20px]"
             src={element.properties.src}
             onLoad={() => {
               refreshElements(store);
@@ -184,7 +190,7 @@ const Element = observer((props: { element: EditorElement }) => {
         ) : null}
       </div>
       <button
-        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-1 rounded w-[30px]"
+        className="bg-red-500 hover:bg-red-700 text-white text-xs py-0 px-1 rounded"
         onClick={() => {
           store.removeEditorElement(element.id);
           refreshElements(store);
