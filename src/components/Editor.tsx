@@ -5,7 +5,7 @@ import React, { useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
 import { EditorElement, Placement, Store } from "@/store/Store";
 import { StoreContext } from "@/store";
-import { getUid, isHtmlVideoElement } from "@/utils";
+import { formatTimeToMinSec, getUid, isHtmlVideoElement } from "@/utils";
 import { observer } from "mobx-react";
 import {
   MdDownload,
@@ -15,6 +15,7 @@ import {
   MdTitle,
   MdOutlineTextFields,
   MdMovie,
+  MdAdd,
 } from "react-icons/md";
 
 function refreshElements(store: Store) {
@@ -224,17 +225,27 @@ type VideoResourceProps = {
 
 const VideoResource = observer(({ video, index }: VideoResourceProps) => {
   const store = React.useContext(StoreContext);
+  const ref = React.useRef<HTMLVideoElement>(null);
+  const [formatedVideoLength, setFormatedVideoLength] = React.useState("00:00");
 
   return (
-    <div className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col">
+    <div className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col relative">
+      <div className="bg-[rgba(0,0,0,.25)] text-white py-1 absolute text-base top-2 right-2">
+        {formatedVideoLength}
+      </div>
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1  w-full"
+        className="hover:bg-[#00a0f5] bg-[rgba(0,0,0,.25)] rounded z-10 text-white font-bold py-1 absolute text-lg bottom-2 right-2"
         onClick={() => store.addVideo(index)}
       >
-        Use -{">"}
+        <MdAdd size="25" />
       </button>
       <video
-        className="max-h-[150px] max-w-[150px]"
+        onLoadedData={() => {
+          const videoLength = ref.current?.duration ?? 0;
+          setFormatedVideoLength(formatTimeToMinSec(videoLength));
+        }}
+        ref={ref}
+        className="max-h-[100px] max-w-[150px]"
         src={video}
         height={200}
         width={200}
@@ -318,13 +329,6 @@ export const Menu = observer(() => {
       },
     },
     {
-      name: "Text",
-      icon: MdTitle,
-      action: () => {
-        store.setSelectedMenuOption("Text");
-      },
-    },
-    {
       name: "Image",
       icon: MdImage,
       action: () => {
@@ -332,10 +336,10 @@ export const Menu = observer(() => {
       },
     },
     {
-      name: "Export",
-      icon: MdDownload,
+      name: "Text",
+      icon: MdTitle,
       action: () => {
-        store.setSelectedMenuOption("Export");
+        store.setSelectedMenuOption("Text");
       },
     },
     {
@@ -343,6 +347,13 @@ export const Menu = observer(() => {
       icon: MdTransform,
       action: () => {
         store.setSelectedMenuOption("Animation");
+      },
+    },
+    {
+      name: "Export",
+      icon: MdDownload,
+      action: () => {
+        store.setSelectedMenuOption("Export");
       },
     },
   ];
@@ -383,10 +394,10 @@ export const Resources = observer(() => {
   return (
     <>
       {selectedMenuOption === "Video" ? <VideoResources /> : null}
-      {selectedMenuOption === "Text" ? <TextResources /> : null}
       {selectedMenuOption === "Image" ? <ImageResources /> : null}
-      {selectedMenuOption === "Export" ? <Export /> : null}
+      {selectedMenuOption === "Text" ? <TextResources /> : null}
       {selectedMenuOption === "Animation" ? <Animations /> : null}
+      {selectedMenuOption === "Export" ? <Export /> : null}
     </>
   );
 });
@@ -394,7 +405,9 @@ export const Animations = observer(() => {
   const store = React.useContext(StoreContext);
   return (
     <>
-      <div className="text-sm px-[16px] py-[7px] font-semibold">Animations</div>
+      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
+        Animations
+      </div>
       {store.animations.map((animation) => {
         return <div key={animation.id}>{animation.targetId}</div>;
       })}
@@ -404,7 +417,9 @@ export const Animations = observer(() => {
 export const Export = observer(() => {
   return (
     <>
-      <div className="text-sm px-[16px] py-[7px] font-semibold">Export</div>
+      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
+        Export
+      </div>
       <button
         className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
         onClick={() => {
@@ -426,7 +441,9 @@ export const VideoResources = observer(() => {
   };
   return (
     <>
-      <div className="text-sm px-[16px] py-[7px] font-semibold">Add Video</div>
+      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
+        Add Video
+      </div>
       {store.videos.map((video, index) => {
         return <VideoResource key={video} video={video} index={index} />;
       })}
@@ -449,7 +466,9 @@ export const VideoResources = observer(() => {
 export const ImageResources = observer(() => {
   return (
     <>
-      <div className="text-sm px-[16px] py-[7px] font-semibold">Add Image</div>
+      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
+        Add Image
+      </div>
       <div className="text-center text-sm">Coming Soon</div>
     </>
   );
@@ -459,7 +478,9 @@ export const TextResources = observer(() => {
   const store = React.useContext(StoreContext);
   return (
     <>
-      <div className="text-sm px-[16px] py-[7px] font-semibold">Add Text</div>
+      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
+        Add Text
+      </div>
       <button
         className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
         onClick={() => {
@@ -495,14 +516,14 @@ export const Editor = observer(() => {
     });
   }, []);
   return (
-    <div className="grid grid-rows-[50px_500px_1fr] grid-cols-[60px_200px_800px_1fr] h-[100%]">
+    <div className="grid grid-rows-[50px_500px_1fr] grid-cols-[60px_150px_800px_1fr] h-[100%]">
       <div className="col-span-4 bg-slate-300">
         Video Edtior Prototype Created By Amit Digga
       </div>
       <div className="tile row-span-2 flex flex-col">
         <Menu />
       </div>
-      <div className="row-span-2 flex flex-col bg-slate-200 overflow-auto">
+      <div className="row-span-2 flex flex-col overflow-auto">
         <Resources />
       </div>
       <canvas id="canvas" className="h-[500px] w-[800px] row col-start-3" />

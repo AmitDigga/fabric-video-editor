@@ -28,3 +28,10 @@ export function isHtmlImageElement(
 }
 
 
+export function formatTimeToMinSec(time: number) {
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  if(minutes === 0 && seconds === 0) return "0:00";
+  if(minutes === 0) return `${seconds < 10 ? "0" + seconds : seconds} sec`;
+  return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+}
