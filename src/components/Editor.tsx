@@ -188,6 +188,22 @@ const Element = observer((props: { element: EditorElement }) => {
     </div>
   );
 });
+const Elements = observer((_props: {}) => {
+  const store = React.useContext(StoreContext);
+  return (
+    <div>
+      <div className="flex flex-row justify-between">
+        <div className="text-sm px-[16px] py-[7px] font-semibold">Elements</div>
+      </div>
+      <div className="flex flex-col">
+        {store.editorElements.map((element) => {
+          return <Element key={element.id} element={element} />;
+        })}
+      </div>
+    </div>
+  );
+});
+
 type VideoResourceProps = {
   video: string;
   index: number;
@@ -259,7 +275,40 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
   );
 });
 
-export const Editor = observer(() => {
+export const TimeLine = observer(() => {
+  const store = React.useContext(StoreContext);
+  return (
+    <>
+      <div className="flex flex-col justify-between">
+        <div>Timeline</div>
+        <SeekPlayer />
+      </div>
+      <div
+        id="timeframe-indicator"
+        className="w-[2px] bg-red-400 absolute left-0 top-0 bottom-0"
+      ></div>
+      {store.editorElements.map((element) => {
+        return <TimeFrameView key={element.id} element={element} />;
+      })}
+    </>
+  );
+});
+
+export const Menu = observer(() => {
+  return (
+    <>
+      Menu
+      <button
+        onClick={saveCanvasToVideo}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1  w-full"
+      >
+        Export
+      </button>
+    </>
+  );
+});
+
+export const Resources = observer(() => {
   const store = React.useContext(StoreContext);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -267,6 +316,44 @@ export const Editor = observer(() => {
     store.addVideoResource(URL.createObjectURL(file));
     refreshElements(store);
   };
+  return (
+    <>
+      <div>Resources</div>
+      {store.videos.map((video, index) => {
+        return <VideoResource key={video} video={video} index={index} />;
+      })}
+      <label
+        htmlFor="fileInput"
+        className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4 py-2 text-white"
+      >
+        <input
+          id="fileInput"
+          type="file"
+          accept="video/mp4,video/x-m4v,video/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        Add Video
+      </label>
+      <button
+        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
+        onClick={() => {
+          store.addText();
+          refreshElements(store);
+        }}
+      >
+        Add Text
+      </button>
+      {store.animations.map((animation) => {
+        return <div key={animation.id}>{animation.targetId}</div>;
+      })}
+    </>
+  );
+});
+
+export const Editor = observer(() => {
+  const store = React.useContext(StoreContext);
+
   useEffect(() => {
     const canvas = new fabric.Canvas("canvas", {
       height: 500,
@@ -291,69 +378,17 @@ export const Editor = observer(() => {
         Video Edtior Prototype Created By Amit Digga
       </div>
       <div className="tile row-span-2 bg-slate-400 flex flex-col">
-        Menu
-        <button
-          onClick={saveCanvasToVideo}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1  w-full"
-        >
-          Export
-        </button>
+        <Menu />
       </div>
       <div className="row-span-2 flex flex-col bg-slate-200 overflow-auto">
-        <div>Resources</div>
-        {store.videos.map((video, index) => {
-          return <VideoResource key={video} video={video} index={index} />;
-        })}
-        <label
-          htmlFor="fileInput"
-          className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4 py-2 text-white"
-        >
-          <input
-            id="fileInput"
-            type="file"
-            accept="video/mp4,video/x-m4v,video/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          Add Video
-        </label>
-        <button
-          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
-          onClick={() => {
-            store.addText();
-            refreshElements(store);
-          }}
-        >
-          Add Text
-        </button>
-        {store.animations.map((animation) => {
-          return <div key={animation.id}>{animation.targetId}</div>;
-        })}
+        <Resources />
       </div>
       <canvas id="canvas" className="h-[500px] w-[800px] row col-start-3" />
-      <div className="bg-slate-400 col-start-4 row-start-2">
-        <div className="flex flex-row justify-between">
-          <div>Elements</div>
-        </div>
-        <div className="flex flex-col">
-          {store.editorElements.map((element) => {
-            return <Element key={element.id} element={element} />;
-          })}
-        </div>
+      <div className="col-start-4 row-start-2">
+        <Elements />
       </div>
       <div className="bg-slate-500 col-start-3 row-start-3 col-span-2 relative">
-        {/* Heading for timeline */}
-        <div className="flex flex-col justify-between">
-          <div>Timeline</div>
-          <SeekPlayer />
-        </div>
-        <div
-          id="timeframe-indicator"
-          className="w-[2px] bg-red-400 absolute left-0 top-0 bottom-0"
-        ></div>
-        {store.editorElements.map((element) => {
-          return <TimeFrameView key={element.id} element={element} />;
-        })}
+        <TimeLine />
       </div>
     </div>
   );
