@@ -203,33 +203,6 @@ function refreshElements(store: Store) {
   }
 }
 
-export function saveCanvasToVideo() {
-  const video = document.createElement("video");
-  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-  const stream = canvas.captureStream();
-  video.srcObject = stream;
-  video.play();
-  const mediaRecorder = new MediaRecorder(stream);
-  const chunks: Blob[] = [];
-  mediaRecorder.ondataavailable = function (e) {
-    console.log("data available");
-    console.log(e.data);
-    chunks.push(e.data);
-  };
-  mediaRecorder.onstop = function (e) {
-    const blob = new Blob(chunks, { type: "video/webm" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "video.webm";
-    a.click();
-  };
-  mediaRecorder.start();
-  setTimeout(() => {
-    mediaRecorder.stop();
-  }, 4000);
-}
-
 const Element = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
@@ -612,6 +585,7 @@ export const Animations = observer(() => {
   );
 });
 export const Export = observer(() => {
+  const store = React.useContext(StoreContext);
   return (
     <>
       <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
@@ -620,7 +594,7 @@ export const Export = observer(() => {
       <button
         className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
         onClick={() => {
-          saveCanvasToVideo();
+          store.saveCanvasToVideoWithAUdio();
         }}
       >
         Export

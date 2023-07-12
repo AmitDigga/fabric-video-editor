@@ -433,4 +433,97 @@ export class Store {
       }
     })
   }
+  // saveCanvasToVideo() {
+  //   const video = document.createElement("video");
+  //   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+  //   const stream = canvas.captureStream();
+  //   video.srcObject = stream;
+  //   video.play();
+  //   const mediaRecorder = new MediaRecorder(stream);
+  //   const chunks: Blob[] = [];
+  //   mediaRecorder.ondataavailable = function (e) {
+  //     console.log("data available");
+  //     console.log(e.data);
+  //     chunks.push(e.data);
+  //   };
+  //   mediaRecorder.onstop = function (e) {
+  //     const blob = new Blob(chunks, { type: "video/webm" });
+  //     const url = URL.createObjectURL(blob);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = "video.webm";
+  //     a.click();
+  //   };
+  //   mediaRecorder.start();
+  //   setTimeout(() => {
+  //     mediaRecorder.stop();
+  //   }, this.maxTime);
+    
+  // }
+
+  saveCanvasToVideoWithAUdio() {
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    const stream = canvas.captureStream(30);
+    const audioElements = this.editorElements.filter(isEditorAudioElement)
+    const audioStreams : MediaStream[] = [];
+    audioElements.forEach((audio) => {
+      const audioElement = document.getElementById(audio.properties.elementId) as HTMLAudioElement;
+      let ctx = new AudioContext();
+      let sourceNode = ctx.createMediaElementSource(audioElement);
+      let dest = ctx.createMediaStreamDestination();
+      sourceNode.connect(dest);
+      sourceNode.connect(ctx.destination);
+      audioStreams.push(dest.stream);
+    });
+    audioStreams.forEach((audioStream) => {
+      stream.addTrack(audioStream.getAudioTracks()[0]);
+    })
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.height = 500;
+    video.width = 800;
+    // video.controls = true;
+    // document.body.appendChild(video);
+    video.play().then(() => {
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      mediaRecorder.ondataavailable = function (e) {
+        chunks.push(e.data);
+        console.log("data available");
+      };
+      mediaRecorder.onstop = function (e) {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "video.webm";
+        a.click();
+      };
+      mediaRecorder.start();
+      setTimeout(() => {
+        mediaRecorder.stop();
+      }, this.maxTime);
+      video.remove();
+    })
+    
+  }
+
+}
+
+
+function isEditorAudioElement(
+  element: EditorElement
+): element is AudioEditorElement {
+  return element.type === "audio";
+}
+function isEditorVideoElement(
+  element: EditorElement
+): element is VideoEditorElement {
+  return element.type === "video";
+}
+
+function isEditorImageElement(
+  element: EditorElement
+): element is ImageEditorElement {
+  return element.type === "image";
 }
