@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { fabric } from 'fabric';
 import { getUid, isHtmlVideoElement } from '@/utils';
-import anime, { timeline } from 'animejs';
+import anime from 'animejs';
 
 export type EditorElementBase<T extends string, P> = {
   readonly id: string;
@@ -12,13 +12,15 @@ export type EditorElementBase<T extends string, P> = {
   timeFrame: TimeFrame;
   properties: P;
 };
-
+export type VideoEditorElement = EditorElementBase<
+  "video",
+  { src: string; elementId: string; imageObject?: fabric.Image }
+>;
+export type TextEditorElement = EditorElementBase<"text", { text: string }>;
 export type EditorElement =
-  | EditorElementBase<
-      "video",
-      { src: string; elementId: string; imageObject?: fabric.Image }
-    >
-  | EditorElementBase<"text", { text: string }>;
+  | VideoEditorElement
+  | TextEditorElement;
+
 
 export type Placement = {
   x: number;
@@ -174,6 +176,7 @@ export class Store {
         ...timeFrame,
       }
     }
+    this.updateVideoElements();
     this.updateEditorElement(newEditorElement);
   }
 
@@ -195,15 +198,13 @@ export class Store {
 
   setPlaying(playing: boolean) {
     this.playing = playing;
+    this.updateVideoElements();
     if(playing){
-      this.handlePlay()
       this.startedTime = Date.now();
       this.startedTimePlay = this.currentTimeInMs
       requestAnimationFrame(()=>{
         this.playFrames();
       });
-    }else{
-      this.handlePause()
     }
   }
 
@@ -229,6 +230,20 @@ export class Store {
   updateTimeTo(newTime:number){
     this.setCurrentTimeInMs(newTime);
     this.animationTimeLine.seek(newTime);
+    this.editorElements.forEach(
+      e=> {
+        if(!e.fabricObject) return;
+        e.fabricObject.opacity = e.timeFrame.start <= newTime && e.timeFrame.end >= newTime ? 1 : 0;
+      }
+    )
+  }
+
+  handleSeek(seek: number) {
+    if(this.playing){
+      this.setPlaying(false);
+    }
+    this.updateTimeTo(seek);
+    this.updateVideoElements();
   }
 
   addVideo(index:number) {
@@ -292,65 +307,23 @@ export class Store {
       },
     );
   } 
- handlePlay(
-) {
-  this.editorElements
-    .filter(
-      (element): element is EditorElement & { type: "video" } =>
-        element.type === "video"
-    )
-    .forEach((element) => {
-      const video = document.getElementById(element.properties.elementId);
-      if (isHtmlVideoElement(video)) {
-        video.play();
-      }
-    });
-}
 
- handlePause() {
-  this.editorElements
-    .filter(
-      (element): element is EditorElement & { type: "video" } =>
+  updateVideoElements(){
+    this.editorElements.filter(
+      (element): element is VideoEditorElement =>
         element.type === "video"
     )
     .forEach((element) => {
       const video = document.getElementById(element.properties.elementId);
       if (isHtmlVideoElement(video)) {
-        video.pause();
-      }
-    });
-}
-
- handleSeek(
-  seek: number,
-) {
-  if(this.playing){
-    this.setPlaying(false);
-  }
-  // this.setCurrentTimeInMs(seek);
-  this.updateTimeTo(seek);
-  this.editorElements
-    .filter(
-      (element): element is EditorElement & { type: "video" } =>
-        element.type === "video"
-    )
-    .forEach((element) => {
-      const video = document.getElementById(element.properties.elementId);
-      if (isHtmlVideoElement(video)) {
-        if (element.properties.imageObject) {
-          if (
-            seek >= element.timeFrame.start &&
-            seek <= element.timeFrame.end
-          ) {
-            element.properties.imageObject.set({ opacity: 1 });
-          } else {
-            // element.properties.imageObject.set({ opacity: 0 });
-          }
-          if (!this.playing) {
-            video.currentTime = seek / 1000;
-          }
+        const videoTime = (this.currentTimeInMs - element.timeFrame.start) / 1000;
+        video.currentTime = videoTime;
+        if(this.playing){
+          video.play();
+        }else {
+          video.pause();
         }
       }
-    });
-}
+    })
+  }
 }
