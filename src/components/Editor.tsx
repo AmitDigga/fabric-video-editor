@@ -17,6 +17,7 @@ import {
   MdMovie,
   MdAdd,
 } from "react-icons/md";
+import DragDiv from "./DragableView";
 
 function refreshElements(store: Store) {
   if (!store.canvas) return;
@@ -258,36 +259,61 @@ const VideoResource = observer(({ video, index }: VideoResourceProps) => {
 export const TimeFrameView = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
-  const left = Math.floor((element.timeFrame.start / store.maxTime) * 100);
-  const width = Math.floor(
-    ((element.timeFrame.end - element.timeFrame.start) / store.maxTime) * 100
-  );
   return (
-    <div key={element.id} className="relative">
-      <div
-        className={`bg-slate-800 my-[5px] text-white`}
-        style={{ width: `${width}%`, marginLeft: `${left}%` }}
+    <div key={element.id} className="relative width-full h-[20px]">
+      <DragDiv
+        value={element.timeFrame.start}
+        total={store.maxTime}
+        onChange={(value) => {
+          const { start, end } = element.timeFrame;
+          store.updateEditorElement({
+            ...props.element,
+            timeFrame: {
+              ...props.element.timeFrame,
+              start: value,
+              end: value + (end - start),
+            },
+          });
+        }}
       >
-        {element.name}
-      </div>
-      <div className="absolute right-0 top-0">
-        <button
-          onClick={() => {
-            store.addAnimation({
-              id: getUid(),
-              targetId: element.id,
-              endTime: store.currentTimeInMs,
-              easing: "linear",
-              targetProperty: "left",
-              targetValue: element.placement.x,
-            });
+        <div
+          style={{
+            width: `${
+              (element.timeFrame.end - element.timeFrame.start) / store.maxTime
+            }%`,
           }}
         >
-          Record Key Frame
-        </button>
-      </div>
+          Hello
+        </div>
+      </DragDiv>
     </div>
   );
+  // return (
+  //   <div key={element.id} className="relative">
+  //     <div
+  //       className={`bg-slate-800 my-[5px] text-white`}
+  //       style={{ width: `${width}%`, marginLeft: `${left}%` }}
+  //     >
+  //       {element.name}
+  //     </div>
+  //     <div className="absolute right-0 top-0">
+  //       <button
+  //         onClick={() => {
+  //           store.addAnimation({
+  //             id: getUid(),
+  //             targetId: element.id,
+  //             endTime: store.currentTimeInMs,
+  //             easing: "linear",
+  //             targetProperty: "left",
+  //             targetValue: element.placement.x,
+  //           });
+  //         }}
+  //       >
+  //         Record Key Frame
+  //       </button>
+  //     </div>
+  //   </div>
+  // );
 });
 
 export const TimeLine = observer(() => {
