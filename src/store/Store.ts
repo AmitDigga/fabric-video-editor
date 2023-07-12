@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { fabric } from 'fabric';
-import { getUid, isHtmlImageElement, isHtmlVideoElement } from '@/utils';
+import { getUid, isHtmlAudioElement, isHtmlImageElement, isHtmlVideoElement } from '@/utils';
 import anime from 'animejs';
 
 export type EditorElementBase<T extends string, P> = {
@@ -17,12 +17,18 @@ export type VideoEditorElement = EditorElementBase<
   { src: string; elementId: string; imageObject?: fabric.Image }
 >;
 export type ImageEditorElement = EditorElementBase<"image", { src: string, elementId:string, imageObject?:fabric.Object }>;
+
+export type AudioEditorElement = EditorElementBase<
+  "audio",
+  { src: string; elementId: string }
+>;
 export type TextEditorElement = EditorElementBase<"text", { text: string }>;
 
 
 export type EditorElement =
   | VideoEditorElement
   | ImageEditorElement
+  | AudioEditorElement
   | TextEditorElement
 
 
@@ -57,13 +63,14 @@ export type Animation = {
   delay? : number;
 }
 
-export type MenuOption = 'Video' | 'Text' | 'Image' | 'Export' | 'Animation';
+export type MenuOption = 'Video' |'Audio' | 'Text' | 'Image' | 'Export' | 'Animation';
 
 
 export class Store {
   canvas: fabric.Canvas | null 
 
   selectedMenuOption: MenuOption;
+  audios: string[] 
   videos: string[] 
   images: string[] 
   editorElements: EditorElement[] 
@@ -79,6 +86,7 @@ export class Store {
     this.canvas = null;
     this.videos = [];
     this.images = [];
+    this.audios = [];
     this.editorElements = [];
     this.maxTime = 30 * 1000;
     this.playing = false;
@@ -112,6 +120,9 @@ export class Store {
 
   addVideoResource(video: string) {
     this.videos = [...this.videos, video];
+  }
+  addAudioResource(audio: string) {
+    this.audios = [...this.audios, audio];
   }
   addImageResource(image: string) {
     this.images = [...this.images, image];
@@ -186,6 +197,7 @@ export class Store {
       }
     }
     this.updateVideoElements();
+    this.updateAudioElements();
     this.updateEditorElement(newEditorElement);
   }
 
@@ -208,6 +220,7 @@ export class Store {
   setPlaying(playing: boolean) {
     this.playing = playing;
     this.updateVideoElements();
+    this.updateAudioElements();
     if(playing){
       this.startedTime = Date.now();
       this.startedTimePlay = this.currentTimeInMs
@@ -253,6 +266,7 @@ export class Store {
     }
     this.updateTimeTo(seek);
     this.updateVideoElements();
+    this.updateAudioElements();
   }
 
   addVideo(index:number) {
@@ -321,6 +335,40 @@ export class Store {
       },
     );
   }
+
+  addAudio(index:number) {
+    const audioElement = document.getElementById(`audio-${index}`)
+    if(!isHtmlAudioElement(audioElement)){
+      return;
+    }
+    const audioDurationMs = audioElement.duration * 1000;
+    const id = getUid();
+    this.addEditorElement(
+      {
+        id,
+        name: `Media(audio) ${index + 1}`,
+        type: "audio",
+        placement: {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+        },
+        timeFrame: {
+          start: 0,
+          end: audioDurationMs,
+        },
+        properties: {
+          elementId: `audio-${id}`,
+          src: audioElement.src,
+        }
+      },
+    );
+      
+  }
   addText() {
     const id = getUid();
     const index = this.editorElements.length;
@@ -363,6 +411,24 @@ export class Store {
           video.play();
         }else {
           video.pause();
+        }
+      }
+    })
+  }
+  updateAudioElements(){
+    this.editorElements.filter(
+      (element): element is AudioEditorElement =>
+        element.type === "audio"
+    )
+    .forEach((element) => {
+      const audio = document.getElementById(element.properties.elementId);
+      if (isHtmlAudioElement(audio)) {
+        const audioTime = (this.currentTimeInMs - element.timeFrame.start) / 1000;
+        audio.currentTime = audioTime;
+        if(this.playing){
+          audio.play();
+        }else {
+          audio.pause();
         }
       }
     })

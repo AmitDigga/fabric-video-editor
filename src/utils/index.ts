@@ -27,6 +27,18 @@ export function isHtmlImageElement(
   return element.tagName === "IMG";
 }
 
+export function isHtmlAudioElement(
+  element:
+    | HTMLVideoElement
+    | HTMLImageElement
+    | HTMLCanvasElement
+    | null
+    | HTMLElement
+): element is HTMLAudioElement {
+  if (!element) return false;
+  return element.tagName === "AUDIO";
+}
+
 
 export function formatTimeToMinSec(time: number) {
   const minutes = Math.floor(time / 60);

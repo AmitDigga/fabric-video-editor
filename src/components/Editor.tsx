@@ -20,6 +20,7 @@ import {
   MdOutlineTextFields,
   MdMovie,
   MdAdd,
+  MdAudiotrack,
 } from "react-icons/md";
 import DragableView from "./DragableView";
 
@@ -153,6 +154,9 @@ function refreshElements(store: Store) {
         });
         break;
       }
+      case "audio": {
+        break;
+      }
       case "text": {
         const textObject = new fabric.Textbox(element.properties.text, {
           name: element.id,
@@ -270,6 +274,19 @@ const Element = observer((props: { element: EditorElement }) => {
             id={element.properties.elementId}
           ></img>
         ) : null}
+        {element.type === "audio" ? (
+          <audio
+            className="opacity-0 max-w-[20px] max-h-[20px]"
+            src={element.properties.src}
+            onLoad={() => {
+              refreshElements(store);
+            }}
+            onLoadedData={() => {
+              refreshElements(store);
+            }}
+            id={element.properties.elementId}
+          ></audio>
+        ) : null}
       </div>
       <button
         className="bg-red-500 hover:bg-red-700 text-white text-xs py-0 px-1 rounded"
@@ -335,6 +352,43 @@ const VideoResource = observer(({ video, index }: VideoResourceProps) => {
     </div>
   );
 });
+
+export type AudioResourceProps = {
+  audio: string;
+  index: number;
+};
+
+const AudioResource = observer(({ audio, index }: AudioResourceProps) => {
+  const store = React.useContext(StoreContext);
+  const ref = React.useRef<HTMLAudioElement>(null);
+  const [formatedAudioLength, setFormatedAudioLength] = React.useState("00:00");
+
+  return (
+    <div className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col relative min-h-[100px]">
+      <div className="bg-[rgba(0,0,0,.25)] text-white py-1 absolute text-base top-2 right-2">
+        {formatedAudioLength}
+      </div>
+      <button
+        className="hover:bg-[#00a0f5] bg-[rgba(0,0,0,.25)] rounded z-10 text-white font-bold py-1 absolute text-lg bottom-2 right-2"
+        onClick={() => store.addAudio(index)}
+      >
+        <MdAdd size="25" />
+      </button>
+      <audio
+        onLoadedData={() => {
+          const audioLength = ref.current?.duration ?? 0;
+          setFormatedAudioLength(formatTimeToMinSec(audioLength));
+        }}
+        ref={ref}
+        className="max-h-[100px] max-w-[150px] min-h-[50px] min-w-[100px]"
+        // controls
+        src={audio}
+        id={`audio-${index}`}
+      ></audio>
+    </div>
+  );
+});
+
 type ImageResourceProps = {
   image: string;
   index: number;
@@ -463,6 +517,13 @@ export const Menu = observer(() => {
       },
     },
     {
+      name: "Audio",
+      icon: MdAudiotrack,
+      action: () => {
+        store.setSelectedMenuOption("Audio");
+      },
+    },
+    {
       name: "Image",
       icon: MdImage,
       action: () => {
@@ -529,6 +590,7 @@ export const Resources = observer(() => {
   return (
     <>
       {selectedMenuOption === "Video" ? <VideoResources /> : null}
+      {selectedMenuOption === "Audio" ? <AudioResources /> : null}
       {selectedMenuOption === "Image" ? <ImageResources /> : null}
       {selectedMenuOption === "Text" ? <TextResources /> : null}
       {selectedMenuOption === "Animation" ? <Animations /> : null}
@@ -590,6 +652,39 @@ export const VideoResources = observer(() => {
           id="fileInput"
           type="file"
           accept="video/mp4,video/x-m4v,video/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        Upload
+      </label>
+    </>
+  );
+});
+
+export const AudioResources = observer(() => {
+  const store = React.useContext(StoreContext);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    store.addAudioResource(URL.createObjectURL(file));
+    refreshElements(store);
+  };
+  return (
+    <>
+      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
+        Add Audio
+      </div>
+      {store.audios.map((audio, index) => {
+        return <AudioResource key={audio} audio={audio} index={index} />;
+      })}
+      <label
+        htmlFor="fileInput"
+        className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4 py-2 text-white"
+      >
+        <input
+          id="fileInput"
+          type="file"
+          accept="audio/mp3,audio/*"
           className="hidden"
           onChange={handleFileChange}
         />
