@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { fabric } from 'fabric';
-import { getUid, isHtmlVideoElement } from '@/utils';
+import { getUid, isHtmlImageElement, isHtmlVideoElement } from '@/utils';
 import anime from 'animejs';
 
 export type EditorElementBase<T extends string, P> = {
@@ -16,10 +16,14 @@ export type VideoEditorElement = EditorElementBase<
   "video",
   { src: string; elementId: string; imageObject?: fabric.Image }
 >;
+export type ImageEditorElement = EditorElementBase<"image", { src: string, elementId:string, imageObject?:fabric.Object }>;
 export type TextEditorElement = EditorElementBase<"text", { text: string }>;
+
+
 export type EditorElement =
   | VideoEditorElement
-  | TextEditorElement;
+  | ImageEditorElement
+  | TextEditorElement
 
 
 export type Placement = {
@@ -61,6 +65,7 @@ export class Store {
 
   selectedMenuOption: MenuOption;
   videos: string[] 
+  images: string[] 
   editorElements: EditorElement[] 
   maxTime: number 
   animations: Animation[]
@@ -73,6 +78,7 @@ export class Store {
   constructor() {
     this.canvas = null;
     this.videos = [];
+    this.images = [];
     this.editorElements = [];
     this.maxTime = 30 * 1000;
     this.playing = false;
@@ -106,6 +112,9 @@ export class Store {
 
   addVideoResource(video: string) {
     this.videos = [...this.videos, video];
+  }
+  addImageResource(image: string) {
+    this.images = [...this.images, image];
   }
 
   addAnimation(animation: Animation) {
@@ -254,8 +263,7 @@ export class Store {
     const videoDurationMs = videoElement.duration * 1000;
     const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
     const id = getUid();
-    this.setEditorElements([
-      ...this.editorElements,
+    this.addEditorElement(
       {
         id,
         name: `Media(video) ${index + 1}`,
@@ -278,7 +286,40 @@ export class Store {
           src: videoElement.src,
         },
       },
-    ]);
+    );
+  }
+
+  addImage(index:number){
+    const imageElement = document.getElementById(`image-${index}`)
+    if(!isHtmlImageElement(imageElement)){
+      return;
+    }
+    const aspectRatio = imageElement.naturalWidth / imageElement.naturalHeight;
+    const id = getUid();
+    this.addEditorElement(
+      {
+        id,
+        name: `Media(image) ${index + 1}`,
+        type: "image",
+        placement: {
+          x: 0,
+          y: 0,
+          width: 100 * aspectRatio,
+          height: 100,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+        },
+        timeFrame: {
+          start: 0,
+          end: this.maxTime,
+        },
+        properties: {
+          elementId: `image-${id}`,
+          src: imageElement.src,
+        },
+      },
+    );
   }
   addText() {
     const id = getUid();

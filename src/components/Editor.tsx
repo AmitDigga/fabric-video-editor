@@ -5,7 +5,11 @@ import React, { useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
 import { EditorElement, Placement, Store } from "@/store/Store";
 import { StoreContext } from "@/store";
-import { formatTimeToMinSec, isHtmlVideoElement } from "@/utils";
+import {
+  formatTimeToMinSec,
+  isHtmlImageElement,
+  isHtmlVideoElement,
+} from "@/utils";
 import { observer } from "mobx-react";
 import {
   MdDownload,
@@ -67,6 +71,67 @@ function refreshElements(store: Store) {
           if (!e.target) return;
           const target = e.target;
           if (target != videoObject) return;
+          const placement = element.placement;
+          let fianlScale = 1;
+          if (target.scaleX && target.scaleX > 0) {
+            fianlScale = target.scaleX / toScale.x;
+          }
+          const newPlacement: Placement = {
+            ...placement,
+            x: target.left ?? placement.x,
+            y: target.top ?? placement.y,
+            rotation: target.angle ?? placement.rotation,
+            scaleX: fianlScale,
+            scaleY: fianlScale,
+          };
+          const newElement = {
+            ...element,
+            placement: newPlacement,
+          };
+          store.updateEditorElement(newElement);
+        });
+        break;
+      }
+      case "image": {
+        if (document.getElementById(element.properties.elementId) == null)
+          continue;
+        const imageElement = document.getElementById(
+          element.properties.elementId
+        );
+        if (!isHtmlImageElement(imageElement)) continue;
+        const imageObject = new fabric.Image(imageElement, {
+          name: element.id,
+          left: element.placement.x,
+          top: element.placement.y,
+          angle: element.placement.rotation,
+          objectCaching: false,
+          selectable: true,
+          lockUniScaling: true,
+        });
+        element.fabricObject = imageObject;
+        element.properties.imageObject = imageObject;
+        const image = {
+          w: imageElement.naturalWidth,
+          h: imageElement.naturalHeight,
+        };
+
+        imageObject.width = image.w;
+        imageObject.height = image.h;
+        imageElement.width = image.w;
+        imageElement.height = image.h;
+        imageObject.scaleToHeight(image.w);
+        imageObject.scaleToWidth(image.h);
+        const toScale = {
+          x: element.placement.width / image.w,
+          y: element.placement.height / image.h,
+        };
+        imageObject.scaleX = toScale.x * element.placement.scaleX;
+        imageObject.scaleY = toScale.y * element.placement.scaleY;
+        canvas.add(imageObject);
+        canvas.on("object:modified", function (e) {
+          if (!e.target) return;
+          const target = e.target;
+          if (target != imageObject) return;
           const placement = element.placement;
           let fianlScale = 1;
           if (target.scaleX && target.scaleX > 0) {
@@ -190,6 +255,21 @@ const Element = observer((props: { element: EditorElement }) => {
             id={element.properties.elementId}
           ></video>
         ) : null}
+        {element.type === "image" ? (
+          <img
+            className="opacity-0 max-w-[20px] max-h-[20px]"
+            src={element.properties.src}
+            onLoad={() => {
+              refreshElements(store);
+            }}
+            onLoadedData={() => {
+              refreshElements(store);
+            }}
+            height={20}
+            width={20}
+            id={element.properties.elementId}
+          ></img>
+        ) : null}
       </div>
       <button
         className="bg-red-500 hover:bg-red-700 text-white text-xs py-0 px-1 rounded"
@@ -252,6 +332,43 @@ const VideoResource = observer(({ video, index }: VideoResourceProps) => {
         width={200}
         id={`video-${index}`}
       ></video>
+    </div>
+  );
+});
+type ImageResourceProps = {
+  image: string;
+  index: number;
+};
+const ImageResource = observer(({ image, index }: ImageResourceProps) => {
+  const store = React.useContext(StoreContext);
+  const ref = React.useRef<HTMLImageElement>(null);
+  const [resolution, setResolution] = React.useState({ w: 0, h: 0 });
+
+  return (
+    <div className="rounded-lg overflow-hidden items-center bg-slate-800 m-[15px] flex flex-col relative">
+      <div className="bg-[rgba(0,0,0,.25)] text-white py-1 absolute text-base top-2 right-2">
+        {resolution.w}x{resolution.h}
+      </div>
+      <button
+        className="hover:bg-[#00a0f5] bg-[rgba(0,0,0,.25)] rounded z-10 text-white font-bold py-1 absolute text-lg bottom-2 right-2"
+        onClick={() => store.addImage(index)}
+      >
+        <MdAdd size="25" />
+      </button>
+      <img
+        onLoad={() => {
+          setResolution({
+            w: ref.current?.naturalWidth ?? 0,
+            h: ref.current?.naturalHeight ?? 0,
+          });
+        }}
+        ref={ref}
+        className="max-h-[100px] max-w-[150px]"
+        src={image}
+        height={200}
+        width={200}
+        id={`image-${index}`}
+      ></img>
     </div>
   );
 });
@@ -482,12 +599,34 @@ export const VideoResources = observer(() => {
   );
 });
 export const ImageResources = observer(() => {
+  const store = React.useContext(StoreContext);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    store.addImageResource(URL.createObjectURL(file));
+    refreshElements(store);
+  };
   return (
     <>
       <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
         Add Image
       </div>
-      <div className="text-center text-sm">Coming Soon</div>
+      {store.images.map((image, index) => {
+        return <ImageResource key={image} image={image} index={index} />;
+      })}
+      <label
+        htmlFor="fileInput"
+        className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4 py-2 text-white"
+      >
+        <input
+          id="fileInput"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        Upload
+      </label>
     </>
   );
 });
