@@ -353,6 +353,7 @@ export const Menu = observer(() => {
       {menuOptions.map((option) => {
         return (
           <button
+            key={option.name}
             onClick={option.action}
             className="py-4 px-2 w-full flex flex-col items-center text-xs"
           >
