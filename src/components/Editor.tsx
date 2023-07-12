@@ -5,7 +5,7 @@ import React, { useEffect } from "react";
 import { SeekPlayer } from "./SeekPlayer";
 import { EditorElement, Placement, Store } from "@/store/Store";
 import { StoreContext } from "@/store";
-import { formatTimeToMinSec, getUid, isHtmlVideoElement } from "@/utils";
+import { formatTimeToMinSec, isHtmlVideoElement } from "@/utils";
 import { observer } from "mobx-react";
 import {
   MdDownload,
@@ -261,7 +261,7 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
   const { element } = props;
 
   return (
-    <div key={element.id} className="relative width-full h-[20px]">
+    <div key={element.id} className="relative width-full h-[25px] my-2">
       <DragableView
         className="z-10"
         value={element.timeFrame.start}
@@ -272,14 +272,19 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
           });
         }}
       >
-        <div
-          className="bg-white border-2 border-blue-400 rounded"
-          style={{ width: 8, height: 20, transform: "translateX(-50%)" }}
-        ></div>
+        <div className="bg-white border-2 border-blue-400 rounded w-[8px] h-[25px] transform translate-x-[-50%] cursor-ew-resize"></div>
       </DragableView>
 
       <DragableView
+        className="cursor-col-resize"
         value={element.timeFrame.start}
+        style={{
+          width: `${
+            ((element.timeFrame.end - element.timeFrame.start) /
+              store.maxTime) *
+            100
+          }%`,
+        }}
         total={store.maxTime}
         onChange={(value) => {
           const { start, end } = element.timeFrame;
@@ -289,14 +294,8 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
           });
         }}
       >
-        <div
-          style={{
-            width: `${
-              (element.timeFrame.end - element.timeFrame.start) / store.maxTime
-            }%`,
-          }}
-        >
-          Hello
+        <div className="bg-slate-800 h-full w-full text-white text-xs min-w-[0px] px-2 leading-[25px]">
+          {element.name}
         </div>
       </DragableView>
       <DragableView
@@ -309,39 +308,10 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
           });
         }}
       >
-        <div
-          className="bg-white border-2 border-blue-400 rounded"
-          style={{ width: 8, height: 20, transform: "translateX(-50%)" }}
-        ></div>
+        <div className="bg-white border-2 border-blue-400 rounded w-[8px] h-[25px] transform translate-x-[-50%] cursor-ew-resize"></div>
       </DragableView>
     </div>
   );
-  // return (
-  //   <div key={element.id} className="relative">
-  //     <div
-  //       className={`bg-slate-800 my-[5px] text-white`}
-  //       style={{ width: `${width}%`, marginLeft: `${left}%` }}
-  //     >
-  //       {element.name}
-  //     </div>
-  //     <div className="absolute right-0 top-0">
-  //       <button
-  //         onClick={() => {
-  //           store.addAnimation({
-  //             id: getUid(),
-  //             targetId: element.id,
-  //             endTime: store.currentTimeInMs,
-  //             easing: "linear",
-  //             targetProperty: "left",
-  //             targetValue: element.placement.x,
-  //           });
-  //         }}
-  //       >
-  //         Record Key Frame
-  //       </button>
-  //     </div>
-  //   </div>
-  // );
 });
 
 export const TimeLine = observer(() => {
@@ -350,15 +320,17 @@ export const TimeLine = observer(() => {
   return (
     <>
       <SeekPlayer />
-      <div
-        className="w-[2px] bg-red-400 absolute left-0 top-0 bottom-0"
-        style={{
-          left: `${percentOfCurrentTime}%`,
-        }}
-      ></div>
-      {store.editorElements.map((element) => {
-        return <TimeFrameView key={element.id} element={element} />;
-      })}
+      <div className="relative height-auto">
+        <div
+          className="w-[2px] bg-red-400 absolute top-0 bottom-0 z-20"
+          style={{
+            left: `${percentOfCurrentTime}%`,
+          }}
+        ></div>
+        {store.editorElements.map((element) => {
+          return <TimeFrameView key={element.id} element={element} />;
+        })}
+      </div>
     </>
   );
 });
@@ -576,7 +548,7 @@ export const Editor = observer(() => {
       <div className="col-start-4 row-start-2">
         <Elements />
       </div>
-      <div className="col-start-3 row-start-3 col-span-2 relative overflow-scroll">
+      <div className="col-start-3 row-start-3 col-span-2 relative overflow-scroll px-[10px] py-[4px]">
         <TimeLine />
       </div>
     </div>
