@@ -1,7 +1,9 @@
-import React, { MouseEventHandler, useRef } from "react";
+import React, { MouseEventHandler, useEffect, useRef } from "react";
 
-function DragDiv(props: {
+function DragableView(props: {
   children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
   value: number;
   total: number;
   onChange: (value: number) => void;
@@ -35,6 +37,8 @@ function DragDiv(props: {
     data.div.style.left = `${
       (calculateNewValue(event.clientX) / props.total) * 100
     }%`;
+    event.stopPropagation();
+    event.preventDefault();
   };
 
   const handleMouseUp: MouseEventHandler<HTMLDivElement> = (event) => {
@@ -42,35 +46,36 @@ function DragDiv(props: {
     if (!data.isDragging) return;
     data.isDragging = false;
     props.onChange(calculateNewValue(event.clientX));
+    event.stopPropagation();
+    event.preventDefault();
   };
 
-  const handleDiscard: MouseEventHandler<HTMLDivElement> = (event) => {
-    if (!data.div) return;
-    if (!data.isDragging) return;
-    data.isDragging = false;
-    data.div.style.left = `${(props.value / props.total) * 100}%`;
-  };
+  useEffect(() => {
+    window.addEventListener("mouseup", handleMouseUp as any);
+    window.addEventListener("mousemove", handleMouseMove as any);
+    return () => {
+      window.removeEventListener("mouseup", handleMouseUp as any);
+      window.removeEventListener("mousemove", handleMouseMove as any);
+    };
+  }, [handleMouseUp, handleMouseMove]);
 
   return (
     <div
       ref={(r) => {
         data.div = r;
       }}
-      className="absolute height-100"
+      className={`absolute height-100 ${props.className}`}
       style={{
         left: (props.value / props.total) * 100 + "%",
         top: 0,
         bottom: 0,
+        ...props.style,
       }}
-      onMouseLeave={handleDiscard}
-      onMouseOut={handleDiscard}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
     >
       {props.children}
     </div>
   );
 }
 
-export default DragDiv;
+export default DragableView;

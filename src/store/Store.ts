@@ -160,6 +160,22 @@ export class Store {
       element.id === editorElement.id ? editorElement : element
     );
   }
+  updateEditorElementTimeFrame(editorElement: EditorElement, timeFrame: Partial<TimeFrame>) {
+    if(timeFrame.start!=undefined && timeFrame.start < 0){
+      timeFrame.start = 0;
+    }
+    if(timeFrame.end!=undefined && timeFrame.end > this.maxTime){
+      timeFrame.end = this.maxTime;
+    }
+    const newEditorElement = {
+      ...editorElement,
+      timeFrame: {
+        ...editorElement.timeFrame,
+        ...timeFrame,
+      }
+    }
+    this.updateEditorElement(newEditorElement);
+  }
 
 
   addEditorElement(editorElement: EditorElement) {

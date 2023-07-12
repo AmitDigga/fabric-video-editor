@@ -17,7 +17,7 @@ import {
   MdMovie,
   MdAdd,
 } from "react-icons/md";
-import DragDiv from "./DragableView";
+import DragableView from "./DragableView";
 
 function refreshElements(store: Store) {
   if (!store.canvas) return;
@@ -259,20 +259,33 @@ const VideoResource = observer(({ video, index }: VideoResourceProps) => {
 export const TimeFrameView = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
+
   return (
     <div key={element.id} className="relative width-full h-[20px]">
-      <DragDiv
+      <DragableView
+        className="z-10"
+        value={element.timeFrame.start}
+        total={store.maxTime}
+        onChange={(value) => {
+          store.updateEditorElementTimeFrame(element, {
+            start: value,
+          });
+        }}
+      >
+        <div
+          className="bg-white border-2 border-blue-400 rounded"
+          style={{ width: 8, height: 20, transform: "translateX(-50%)" }}
+        ></div>
+      </DragableView>
+
+      <DragableView
         value={element.timeFrame.start}
         total={store.maxTime}
         onChange={(value) => {
           const { start, end } = element.timeFrame;
-          store.updateEditorElement({
-            ...props.element,
-            timeFrame: {
-              ...props.element.timeFrame,
-              start: value,
-              end: value + (end - start),
-            },
+          store.updateEditorElementTimeFrame(element, {
+            start: value,
+            end: value + (end - start),
           });
         }}
       >
@@ -285,7 +298,22 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
         >
           Hello
         </div>
-      </DragDiv>
+      </DragableView>
+      <DragableView
+        className="z-10"
+        value={element.timeFrame.end}
+        total={store.maxTime}
+        onChange={(value) => {
+          store.updateEditorElementTimeFrame(element, {
+            end: value,
+          });
+        }}
+      >
+        <div
+          className="bg-white border-2 border-blue-400 rounded"
+          style={{ width: 8, height: 20, transform: "translateX(-50%)" }}
+        ></div>
+      </DragableView>
     </div>
   );
   // return (
