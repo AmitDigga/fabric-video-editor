@@ -389,7 +389,7 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
           });
         }}
       >
-        <div className="bg-white border-2 border-blue-400 rounded w-[8px] h-[25px] transform translate-x-[-50%] cursor-ew-resize"></div>
+        <div className="bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"></div>
       </DragableView>
 
       <DragableView
@@ -425,7 +425,7 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
           });
         }}
       >
-        <div className="bg-white border-2 border-blue-400 rounded w-[8px] h-[25px] transform translate-x-[-50%] cursor-ew-resize"></div>
+        <div className="bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"></div>
       </DragableView>
     </div>
   );
