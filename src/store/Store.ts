@@ -16,7 +16,7 @@ export type VideoEditorElement = EditorElementBase<
   "video",
   { src: string; elementId: string; imageObject?: fabric.Image }
 >;
-export type ImageEditorElement = EditorElementBase<"image", { src: string, elementId:string, imageObject?:fabric.Object }>;
+export type ImageEditorElement = EditorElementBase<"image", { src: string, elementId: string, imageObject?: fabric.Object }>;
 
 export type AudioEditorElement = EditorElementBase<
   "audio",
@@ -60,27 +60,29 @@ export type Animation = {
   easing: 'linear';
   targetProperty: keyof fabric.Object;
   targetValue: number;
-  delay? : number;
+  delay?: number;
 }
 
-export type MenuOption = 'Video' |'Audio' | 'Text' | 'Image' | 'Export' | 'Animation';
+export type MenuOption = 'Video' | 'Audio' | 'Text' | 'Image' | 'Export' | 'Animation' | 'Fill';
 
 
 export class Store {
-  canvas: fabric.Canvas | null 
+  canvas: fabric.Canvas | null
+
+  backgroundColor: string;
 
   selectedMenuOption: MenuOption;
-  audios: string[] 
-  videos: string[] 
-  images: string[] 
-  editorElements: EditorElement[] 
-  maxTime: number 
+  audios: string[]
+  videos: string[]
+  images: string[]
+  editorElements: EditorElement[]
+  maxTime: number
   animations: Animation[]
   animationTimeLine: anime.AnimeTimelineInstance;
   playing: boolean;
 
-  currentKeyFrame:number;
-  fps:number;
+  currentKeyFrame: number;
+  fps: number;
 
   constructor() {
     this.canvas = null;
@@ -88,6 +90,7 @@ export class Store {
     this.images = [];
     this.audios = [];
     this.editorElements = [];
+    this.backgroundColor = '#111111';
     this.maxTime = 30 * 1000;
     this.playing = false;
     this.currentKeyFrame = 0;
@@ -98,12 +101,12 @@ export class Store {
     makeAutoObservable(this);
   }
 
-  get currentTimeInMs(){
+  get currentTimeInMs() {
     return this.currentKeyFrame * 1000 / this.fps;
   }
 
-  setCurrentTimeInMs(time:number){
-    this.currentKeyFrame = Math.floor(time /1000 * this.fps);
+  setCurrentTimeInMs(time: number) {
+    this.currentKeyFrame = Math.floor(time / 1000 * this.fps);
   }
 
   setSelectedMenuOption(selectedMenuOption: MenuOption) {
@@ -112,6 +115,16 @@ export class Store {
 
   setCanvas(canvas: fabric.Canvas | null) {
     this.canvas = canvas;
+    if (canvas) {
+      canvas.backgroundColor = this.backgroundColor;
+    }
+  }
+
+  setBackgroundColor(backgroundColor: string) {
+    this.backgroundColor = backgroundColor;
+    if (this.canvas) {
+      this.canvas.backgroundColor = backgroundColor;
+    }
   }
 
   setVideos(videos: string[]) {
@@ -133,34 +146,34 @@ export class Store {
     this.refreshAnimations();
   }
 
-  refreshAnimations(){
-    this.animations.sort((a,b) => a.endTime - b.endTime);
+  refreshAnimations() {
+    this.animations.sort((a, b) => a.endTime - b.endTime);
     anime.remove(this.animationTimeLine);
     this.animationTimeLine = anime.timeline({
       duration: this.maxTime,
       autoplay: false,
     });
-    for(let i = 0; i < this.animations.length; i++){
+    for (let i = 0; i < this.animations.length; i++) {
       const animation = this.animations[i];
       const editorElement = this.editorElements.find((element) => element.id === animation.targetId);
-      const lastAnimationWithSameTarget = this.animations.slice(0,i).reverse().find((anim) => anim.targetId === animation.targetId);
+      const lastAnimationWithSameTarget = this.animations.slice(0, i).reverse().find((anim) => anim.targetId === animation.targetId);
       let proprtyStartValue = 0;
       let startTime = 0;
-      if(lastAnimationWithSameTarget){
+      if (lastAnimationWithSameTarget) {
         proprtyStartValue = lastAnimationWithSameTarget.targetValue;
         startTime = lastAnimationWithSameTarget.endTime;
       }
 
       const fabricObject = editorElement?.fabricObject;
-      if(!editorElement || !fabricObject){
+      if (!editorElement || !fabricObject) {
         continue;
       }
       this.animationTimeLine.add({
         targets: fabricObject,
-        [animation.targetProperty]: [proprtyStartValue,animation.targetValue],
+        [animation.targetProperty]: [proprtyStartValue, animation.targetValue],
         duration: animation.endTime - startTime,
         easing: animation.easing,
-      },startTime);
+      }, startTime);
 
     }
   }
@@ -183,10 +196,10 @@ export class Store {
     );
   }
   updateEditorElementTimeFrame(editorElement: EditorElement, timeFrame: Partial<TimeFrame>) {
-    if(timeFrame.start!=undefined && timeFrame.start < 0){
+    if (timeFrame.start != undefined && timeFrame.start < 0) {
       timeFrame.start = 0;
     }
-    if(timeFrame.end!=undefined && timeFrame.end > this.maxTime){
+    if (timeFrame.end != undefined && timeFrame.end > this.maxTime) {
       timeFrame.end = this.maxTime;
     }
     const newEditorElement = {
@@ -221,10 +234,10 @@ export class Store {
     this.playing = playing;
     this.updateVideoElements();
     this.updateAudioElements();
-    if(playing){
+    if (playing) {
       this.startedTime = Date.now();
       this.startedTimePlay = this.currentTimeInMs
-      requestAnimationFrame(()=>{
+      requestAnimationFrame(() => {
         this.playFrames();
       });
     }
@@ -233,35 +246,38 @@ export class Store {
   startedTime = 0;
   startedTimePlay = 0;
 
-  playFrames(){
-    if(!this.playing){
+  playFrames() {
+    if (!this.playing) {
       return;
     }
     const elapsedTime = Date.now() - this.startedTime;
-    const newTime = this.startedTimePlay+ elapsedTime;
+    const newTime = this.startedTimePlay + elapsedTime;
     this.updateTimeTo(newTime);
-    if(newTime > this.maxTime){
+    if (newTime > this.maxTime) {
       this.currentKeyFrame = 0;
       this.setPlaying(false);
-    }else{
-      requestAnimationFrame(()=>{
+    } else {
+      requestAnimationFrame(() => {
         this.playFrames();
       });
     }
   }
-  updateTimeTo(newTime:number){
+  updateTimeTo(newTime: number) {
     this.setCurrentTimeInMs(newTime);
     this.animationTimeLine.seek(newTime);
+    if (this.canvas) {
+      this.canvas.backgroundColor = this.backgroundColor;
+    }
     this.editorElements.forEach(
-      e=> {
-        if(!e.fabricObject) return;
+      e => {
+        if (!e.fabricObject) return;
         e.fabricObject.opacity = e.timeFrame.start <= newTime && e.timeFrame.end >= newTime ? 1 : 0;
       }
     )
   }
 
   handleSeek(seek: number) {
-    if(this.playing){
+    if (this.playing) {
       this.setPlaying(false);
     }
     this.updateTimeTo(seek);
@@ -269,9 +285,9 @@ export class Store {
     this.updateAudioElements();
   }
 
-  addVideo(index:number) {
+  addVideo(index: number) {
     const videoElement = document.getElementById(`video-${index}`)
-    if(!isHtmlVideoElement(videoElement)){
+    if (!isHtmlVideoElement(videoElement)) {
       return;
     }
     const videoDurationMs = videoElement.duration * 1000;
@@ -303,9 +319,9 @@ export class Store {
     );
   }
 
-  addImage(index:number){
+  addImage(index: number) {
     const imageElement = document.getElementById(`image-${index}`)
-    if(!isHtmlImageElement(imageElement)){
+    if (!isHtmlImageElement(imageElement)) {
       return;
     }
     const aspectRatio = imageElement.naturalWidth / imageElement.naturalHeight;
@@ -336,9 +352,9 @@ export class Store {
     );
   }
 
-  addAudio(index:number) {
+  addAudio(index: number) {
     const audioElement = document.getElementById(`audio-${index}`)
-    if(!isHtmlAudioElement(audioElement)){
+    if (!isHtmlAudioElement(audioElement)) {
       return;
     }
     const audioDurationMs = audioElement.duration * 1000;
@@ -367,7 +383,7 @@ export class Store {
         }
       },
     );
-      
+
   }
   addText() {
     const id = getUid();
@@ -395,43 +411,43 @@ export class Store {
         },
       },
     );
-  } 
+  }
 
-  updateVideoElements(){
+  updateVideoElements() {
     this.editorElements.filter(
       (element): element is VideoEditorElement =>
         element.type === "video"
     )
-    .forEach((element) => {
-      const video = document.getElementById(element.properties.elementId);
-      if (isHtmlVideoElement(video)) {
-        const videoTime = (this.currentTimeInMs - element.timeFrame.start) / 1000;
-        video.currentTime = videoTime;
-        if(this.playing){
-          video.play();
-        }else {
-          video.pause();
+      .forEach((element) => {
+        const video = document.getElementById(element.properties.elementId);
+        if (isHtmlVideoElement(video)) {
+          const videoTime = (this.currentTimeInMs - element.timeFrame.start) / 1000;
+          video.currentTime = videoTime;
+          if (this.playing) {
+            video.play();
+          } else {
+            video.pause();
+          }
         }
-      }
-    })
+      })
   }
-  updateAudioElements(){
+  updateAudioElements() {
     this.editorElements.filter(
       (element): element is AudioEditorElement =>
         element.type === "audio"
     )
-    .forEach((element) => {
-      const audio = document.getElementById(element.properties.elementId);
-      if (isHtmlAudioElement(audio)) {
-        const audioTime = (this.currentTimeInMs - element.timeFrame.start) / 1000;
-        audio.currentTime = audioTime;
-        if(this.playing){
-          audio.play();
-        }else {
-          audio.pause();
+      .forEach((element) => {
+        const audio = document.getElementById(element.properties.elementId);
+        if (isHtmlAudioElement(audio)) {
+          const audioTime = (this.currentTimeInMs - element.timeFrame.start) / 1000;
+          audio.currentTime = audioTime;
+          if (this.playing) {
+            audio.play();
+          } else {
+            audio.pause();
+          }
         }
-      }
-    })
+      })
   }
   // saveCanvasToVideo() {
   //   const video = document.createElement("video");
@@ -458,14 +474,14 @@ export class Store {
   //   setTimeout(() => {
   //     mediaRecorder.stop();
   //   }, this.maxTime);
-    
+
   // }
 
   saveCanvasToVideoWithAUdio() {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
     const stream = canvas.captureStream(30);
     const audioElements = this.editorElements.filter(isEditorAudioElement)
-    const audioStreams : MediaStream[] = [];
+    const audioStreams: MediaStream[] = [];
     audioElements.forEach((audio) => {
       const audioElement = document.getElementById(audio.properties.elementId) as HTMLAudioElement;
       let ctx = new AudioContext();
@@ -505,7 +521,7 @@ export class Store {
       }, this.maxTime);
       video.remove();
     })
-    
+
   }
 
 }

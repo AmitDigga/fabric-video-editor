@@ -21,9 +21,11 @@ import {
   MdMovie,
   MdAdd,
   MdAudiotrack,
+  MdOutlineFormatColorFill,
 } from "react-icons/md";
 import DragableView from "./DragableView";
 import "@/utils/fabric-utils";
+import { SketchPicker } from "react-color";
 
 function refreshElements(store: Store) {
   if (!store.canvas) return;
@@ -163,6 +165,7 @@ function refreshElements(store: Store) {
           objectCaching: false,
           selectable: true,
           lockUniScaling: true,
+          fill: "#ffffff",
         });
         element.fabricObject = textObject;
         canvas.add(textObject);
@@ -531,6 +534,13 @@ export const Menu = observer(() => {
       },
     },
     {
+      name: "Fill",
+      icon: MdOutlineFormatColorFill,
+      action: () => {
+        store.setSelectedMenuOption("Fill");
+      },
+    },
+    {
       name: "Export",
       icon: MdDownload,
       action: () => {
@@ -581,6 +591,7 @@ export const Resources = observer(() => {
       {selectedMenuOption === "Text" ? <TextResources /> : null}
       {selectedMenuOption === "Animation" ? <Animations /> : null}
       {selectedMenuOption === "Export" ? <Export /> : null}
+      {selectedMenuOption === "Fill" ? <FillResources /> : null}
     </>
   );
 });
@@ -733,6 +744,25 @@ export const TextResources = observer(() => {
   );
 });
 
+export const FillResources = observer(() => {
+  const store = React.useContext(StoreContext);
+  // Color Picker
+  return (
+    <>
+      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
+        Fill
+      </div>
+      <SketchPicker
+        color={store.backgroundColor}
+        onChangeComplete={(color: any) => {
+          console.log(color);
+          store.setBackgroundColor(color.hex);
+        }}
+      ></SketchPicker>
+    </>
+  );
+});
+
 export const Editor = observer(() => {
   const store = React.useContext(StoreContext);
 
@@ -755,7 +785,7 @@ export const Editor = observer(() => {
     });
   }, []);
   return (
-    <div className="grid grid-rows-[50px_500px_1fr] grid-cols-[60px_150px_800px_1fr] h-[100%]">
+    <div className="grid grid-rows-[50px_500px_1fr] grid-cols-[60px_250px_800px_1fr] h-[100%]">
       <div className="col-span-4 bg-slate-300">
         Video Edtior Prototype Created By Amit Digga
       </div>
