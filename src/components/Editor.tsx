@@ -161,6 +161,8 @@ function refreshElements(store: Store) {
           top: element.placement.y,
           scaleX: element.placement.scaleX,
           scaleY: element.placement.scaleY,
+          width: element.placement.width,
+          height: element.placement.height,
           angle: element.placement.rotation,
           objectCaching: false,
           selectable: true,
@@ -179,6 +181,8 @@ function refreshElements(store: Store) {
             x: target.left ?? placement.x,
             y: target.top ?? placement.y,
             rotation: target.angle ?? placement.rotation,
+            width: target.width ?? placement.width,
+            height: target.height ?? placement.height,
             scaleX: target.scaleX ?? placement.scaleX,
             scaleY: target.scaleY ?? placement.scaleY,
           };
