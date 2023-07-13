@@ -203,18 +203,35 @@ function refreshElements(store: Store) {
         throw new Error("Not implemented");
       }
     }
-    store.canvas.renderAll();
+    if (element.fabricObject) {
+      element.fabricObject.on("selected", function (e) {
+        store.setSelectedElement(element);
+      });
+    }
   }
+  const selectedEditorElement = store.selectedElement;
+  if (selectedEditorElement && selectedEditorElement.fabricObject) {
+    canvas.setActiveObject(selectedEditorElement.fabricObject);
+  }
+  store.canvas.renderAll();
 }
 
 const Element = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
   const Icon = element.type === "video" ? MdMovie : MdOutlineTextFields;
+  const isSelected = store.selectedElement?.id === element.id;
+  const bgColor = isSelected ? "rgba(0, 160, 245, 0.1)" : "";
   return (
     <div
-      className="flex py-2 px-1 flex-row justify-start items-center"
+      style={{
+        backgroundColor: bgColor,
+      }}
+      className={`flex mx-2 my-1 py-2 px-1 flex-row justify-start items-center ${bgColor}`}
       key={element.id}
+      onClick={() => {
+        store.setSelectedElement(element);
+      }}
     >
       <Icon size="20" color="gray"></Icon>
       <div className="truncate text-xs ml-2 flex-1 font-medium">
@@ -266,10 +283,12 @@ const Element = observer((props: { element: EditorElement }) => {
         ) : null}
       </div>
       <button
-        className="bg-red-500 hover:bg-red-700 text-white text-xs py-0 px-1 rounded"
-        onClick={() => {
+        className="bg-red-500 hover:bg-red-700 text-white mr-2 text-xs py-0 px-1 rounded"
+        onClick={(e) => {
           store.removeEditorElement(element.id);
           refreshElements(store);
+          e.preventDefault();
+          e.stopPropagation();
         }}
       >
         X
@@ -408,9 +427,20 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
   const disabled = element.type === "audio";
+  const isSelected = store.selectedElement?.id === element.id;
+  const bgColorOnSelected = isSelected ? "bg-slate-800" : "bg-slate-600";
+  const disabledCursor = disabled ? "cursor-no-drop" : "cursor-ew-resize";
 
   return (
-    <div key={element.id} className="relative width-full h-[25px] my-2">
+    <div
+      onClick={() => {
+        store.setSelectedElement(element);
+      }}
+      key={element.id}
+      className={`relative width-full h-[25px] my-2 ${
+        isSelected ? "border-2 border-indigo-600 bg-slate-200" : ""
+      }`}
+    >
       <DragableView
         className="z-10"
         value={element.timeFrame.start}
@@ -423,11 +453,7 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
         }}
       >
         <div
-          className={
-            disabled
-              ? "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-no-drop"
-              : "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"
-          }
+          className={`bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] ${disabledCursor}`}
         ></div>
       </DragableView>
 
@@ -451,7 +477,9 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
           });
         }}
       >
-        <div className="bg-slate-800 h-full w-full text-white text-xs min-w-[0px] px-2 leading-[25px]">
+        <div
+          className={`${bgColorOnSelected} h-full w-full text-white text-xs min-w-[0px] px-2 leading-[25px]`}
+        >
           {element.name}
         </div>
       </DragableView>
@@ -467,11 +495,7 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
         }}
       >
         <div
-          className={
-            disabled
-              ? "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-no-drop"
-              : "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"
-          }
+          className={`bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] ${disabledCursor}`}
         ></div>
       </DragableView>
     </div>

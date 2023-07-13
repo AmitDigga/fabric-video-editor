@@ -76,6 +76,8 @@ export class Store {
   videos: string[]
   images: string[]
   editorElements: EditorElement[]
+  selectedElement: EditorElement | null;
+
   maxTime: number
   animations: Animation[]
   animationTimeLine: anime.AnimeTimelineInstance;
@@ -94,6 +96,7 @@ export class Store {
     this.maxTime = 30 * 1000;
     this.playing = false;
     this.currentKeyFrame = 0;
+    this.selectedElement = null;
     this.fps = 60;
     this.animations = [];
     this.animationTimeLine = anime.timeline();
@@ -184,17 +187,27 @@ export class Store {
     this.refreshAnimations();
   }
 
-
+  setSelectedElement(selectedElement: EditorElement | null) {
+    this.selectedElement = selectedElement;
+    if (this.canvas && selectedElement?.fabricObject) {
+      this.canvas.setActiveObject(selectedElement.fabricObject);
+    }
+  }
+  updateSelectedElement() {
+    this.selectedElement = this.editorElements.find((element) => element.id === this.selectedElement?.id) ?? null;
+  }
 
   setEditorElements(editorElements: EditorElement[]) {
     this.editorElements = editorElements;
+    this.updateSelectedElement();
   }
 
   updateEditorElement(editorElement: EditorElement) {
-    this.editorElements = this.editorElements.map((element) =>
+    this.setEditorElements(this.editorElements.map((element) =>
       element.id === editorElement.id ? editorElement : element
-    );
+    ));
   }
+
   updateEditorElementTimeFrame(editorElement: EditorElement, timeFrame: Partial<TimeFrame>) {
     if (timeFrame.start != undefined && timeFrame.start < 0) {
       timeFrame.start = 0;
@@ -216,13 +229,13 @@ export class Store {
 
 
   addEditorElement(editorElement: EditorElement) {
-    this.editorElements.push(editorElement);
+    this.setEditorElements([...this.editorElements, editorElement]);
   }
 
   removeEditorElement(id: string) {
-    this.editorElements = this.editorElements.filter(
+    this.setEditorElements(this.editorElements.filter(
       (editorElement) => editorElement.id !== id
-    );
+    ));
   }
 
   setMaxTime(maxTime: number) {
