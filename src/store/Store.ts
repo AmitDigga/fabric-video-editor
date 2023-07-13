@@ -230,6 +230,7 @@ export class Store {
 
   addEditorElement(editorElement: EditorElement) {
     this.setEditorElements([...this.editorElements, editorElement]);
+    this.setSelectedElement(editorElement);
   }
 
   removeEditorElement(id: string) {
