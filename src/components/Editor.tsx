@@ -40,10 +40,14 @@ function refreshElements(store: Store) {
           element.properties.elementId
         );
         if (!isHtmlVideoElement(videoElement)) continue;
-        const videoObject = new fabric.CoverImage(videoElement, {
+        const videoObject = new fabric.CoverVideo(videoElement, {
           name: element.id,
           left: element.placement.x,
           top: element.placement.y,
+          width: element.placement.width,
+          height: element.placement.height,
+          scaleX: element.placement.scaleX,
+          scaleY: element.placement.scaleY,
           angle: element.placement.rotation,
           objectCaching: false,
           selectable: true,
@@ -51,40 +55,30 @@ function refreshElements(store: Store) {
         });
         element.fabricObject = videoObject;
         element.properties.imageObject = videoObject;
-        const video = {
-          w: videoElement.videoWidth,
-          h: videoElement.videoHeight,
-        };
-
-        const toScale = {
-          x: element.placement.width / video.w,
-          y: element.placement.height / video.h,
-        };
-        videoObject.width = video.w;
-        videoObject.height = video.h;
-        videoElement.width = video.w;
-        videoElement.height = video.h;
-        videoObject.scaleToHeight(video.w);
-        videoObject.scaleToWidth(video.h);
-        videoObject.scaleX = toScale.x * element.placement.scaleX;
-        videoObject.scaleY = toScale.y * element.placement.scaleY;
+        videoElement.width = 100;
+        videoElement.height =
+          (videoElement.videoHeight * 100) / videoElement.videoWidth;
         canvas.add(videoObject);
         canvas.on("object:modified", function (e) {
           if (!e.target) return;
           const target = e.target;
           if (target != videoObject) return;
           const placement = element.placement;
-          let fianlScale = 1;
-          if (target.scaleX && target.scaleX > 0) {
-            fianlScale = target.scaleX / toScale.x;
-          }
           const newPlacement: Placement = {
             ...placement,
             x: target.left ?? placement.x,
             y: target.top ?? placement.y,
             rotation: target.angle ?? placement.rotation,
-            scaleX: fianlScale,
-            scaleY: fianlScale,
+            width:
+              target.width && target.scaleX
+                ? target.width * target.scaleX
+                : placement.width,
+            height:
+              target.height && target.scaleY
+                ? target.height * target.scaleY
+                : placement.height,
+            scaleX: 1,
+            scaleY: 1,
           };
           const newElement = {
             ...element,
