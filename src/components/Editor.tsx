@@ -400,6 +400,7 @@ const ImageResource = observer(({ image, index }: ImageResourceProps) => {
 export const TimeFrameView = observer((props: { element: EditorElement }) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
+  const disabled = element.type === "audio";
 
   return (
     <div key={element.id} className="relative width-full h-[25px] my-2">
@@ -407,18 +408,26 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
         className="z-10"
         value={element.timeFrame.start}
         total={store.maxTime}
+        disabled={disabled}
         onChange={(value) => {
           store.updateEditorElementTimeFrame(element, {
             start: value,
           });
         }}
       >
-        <div className="bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"></div>
+        <div
+          className={
+            disabled
+              ? "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-no-drop"
+              : "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"
+          }
+        ></div>
       </DragableView>
 
       <DragableView
-        className="cursor-col-resize"
+        className={disabled ? "cursor-no-drop" : "cursor-col-resize"}
         value={element.timeFrame.start}
+        disabled={disabled}
         style={{
           width: `${
             ((element.timeFrame.end - element.timeFrame.start) /
@@ -441,6 +450,7 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
       </DragableView>
       <DragableView
         className="z-10"
+        disabled={disabled}
         value={element.timeFrame.end}
         total={store.maxTime}
         onChange={(value) => {
@@ -449,7 +459,13 @@ export const TimeFrameView = observer((props: { element: EditorElement }) => {
           });
         }}
       >
-        <div className="bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"></div>
+        <div
+          className={
+            disabled
+              ? "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-no-drop"
+              : "bg-white border-2 border-blue-400 w-[10px] h-[10px] mt-[calc(25px/2)] translate-y-[-50%] transform translate-x-[-50%] cursor-ew-resize"
+          }
+        ></div>
       </DragableView>
     </div>
   );

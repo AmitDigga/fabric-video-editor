@@ -2,6 +2,7 @@ import React, { MouseEventHandler, useEffect, useRef } from "react";
 
 function DragableView(props: {
   children?: React.ReactNode;
+  disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
   value: number;
@@ -28,6 +29,7 @@ function DragableView(props: {
 
   const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
     if (!data.div) return;
+    if (props.disabled) return;
     data.isDragging = true;
     data.initialMouseX = event.clientX;
   };
