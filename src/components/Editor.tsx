@@ -23,6 +23,7 @@ import {
   MdAudiotrack,
 } from "react-icons/md";
 import DragableView from "./DragableView";
+import "@/utils/fabric-utils";
 
 function refreshElements(store: Store) {
   if (!store.canvas) return;
@@ -39,7 +40,7 @@ function refreshElements(store: Store) {
           element.properties.elementId
         );
         if (!isHtmlVideoElement(videoElement)) continue;
-        const videoObject = new fabric.Image(videoElement, {
+        const videoObject = new fabric.CoverImage(videoElement, {
           name: element.id,
           left: element.placement.x,
           top: element.placement.y,
@@ -100,7 +101,7 @@ function refreshElements(store: Store) {
           element.properties.elementId
         );
         if (!isHtmlImageElement(imageElement)) continue;
-        const imageObject = new fabric.Image(imageElement, {
+        const imageObject = new fabric.CoverImage(imageElement, {
           name: element.id,
           left: element.placement.x,
           top: element.placement.y,
