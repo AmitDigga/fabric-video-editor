@@ -11,7 +11,6 @@ export const ImageResourcesPanel = observer(() => {
     const file = event.target.files?.[0];
     if (!file) return;
     store.addImageResource(URL.createObjectURL(file));
-    store.refreshElements();
   };
   return (
     <>

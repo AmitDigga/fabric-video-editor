@@ -11,7 +11,6 @@ export const AudioResourcesPanel = observer(() => {
     const file = event.target.files?.[0];
     if (!file) return;
     store.addAudioResource(URL.createObjectURL(file));
-    store.refreshElements();
   };
   return (
     <>

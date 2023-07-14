@@ -11,7 +11,6 @@ export const VideoResourcesPanel = observer(() => {
     const file = event.target.files?.[0];
     if (!file) return;
     store.addVideoResource(URL.createObjectURL(file));
-    store.refreshElements();
   };
   return (
     <>

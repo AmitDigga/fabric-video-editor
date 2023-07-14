@@ -169,12 +169,14 @@ export class Store {
   addEditorElement(editorElement: EditorElement) {
     this.setEditorElements([...this.editorElements, editorElement]);
     this.setSelectedElement(editorElement);
+    this.refreshElements();
   }
 
   removeEditorElement(id: string) {
     this.setEditorElements(this.editorElements.filter(
       (editorElement) => editorElement.id !== id
     ));
+    this.refreshElements();
   }
 
   setMaxTime(maxTime: number) {
@@ -337,7 +339,11 @@ export class Store {
     );
 
   }
-  addText() {
+  addText(options: {
+    text: string,
+    fontSize: number,
+    fontWeight: number,
+  }) {
     const id = getUid();
     const index = this.editorElements.length;
     this.addEditorElement(
@@ -359,7 +365,9 @@ export class Store {
           end: this.maxTime,
         },
         properties: {
-          text: "Text",
+          text: options.text,
+          fontSize: options.fontSize,
+          fontWeight: options.fontWeight,
         },
       },
     );
@@ -614,6 +622,8 @@ export class Store {
             width: element.placement.width,
             height: element.placement.height,
             angle: element.placement.rotation,
+            fontSize: element.properties.fontSize,
+            fontWeight: element.properties.fontWeight,
             objectCaching: false,
             selectable: true,
             lockUniScaling: true,

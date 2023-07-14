@@ -18,7 +18,11 @@ export type ImageEditorElement = EditorElementBase<"image", { src: string; eleme
 export type AudioEditorElement = EditorElementBase<
     "audio", { src: string; elementId: string; }
 >;
-export type TextEditorElement = EditorElementBase<"text", { text: string; }>;
+export type TextEditorElement = EditorElementBase<"text", {
+    text: string;
+    fontSize: number;
+    fontWeight: number;
+}>;
 
 
 export type EditorElement = VideoEditorElement |
