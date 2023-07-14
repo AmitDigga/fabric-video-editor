@@ -3,6 +3,7 @@ import React from "react";
 import { StoreContext } from "@/store";
 import { observer } from "mobx-react";
 import { VideoResource } from "../entity/VideoResource";
+import { UploadButton } from "../shared/UploadButton";
 
 export const VideoResourcesPanel = observer(() => {
   const store = React.useContext(StoreContext);
@@ -20,19 +21,11 @@ export const VideoResourcesPanel = observer(() => {
       {store.videos.map((video, index) => {
         return <VideoResource key={video} video={video} index={index} />;
       })}
-      <label
-        htmlFor="fileInput"
-        className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4 py-2 text-white"
-      >
-        <input
-          id="fileInput"
-          type="file"
-          accept="video/mp4,video/x-m4v,video/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        Upload
-      </label>
+      <UploadButton
+        accept="video/mp4,video/x-m4v,video/*"
+        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded"
+        onChange={handleFileChange}
+      />
     </>
   );
 });

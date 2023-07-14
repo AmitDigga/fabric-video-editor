@@ -3,6 +3,7 @@ import React from "react";
 import { StoreContext } from "@/store";
 import { observer } from "mobx-react";
 import { ImageResource } from "../entity/ImageResource";
+import { UploadButton } from "../shared/UploadButton";
 
 export const ImageResourcesPanel = observer(() => {
   const store = React.useContext(StoreContext);
@@ -20,19 +21,11 @@ export const ImageResourcesPanel = observer(() => {
       {store.images.map((image, index) => {
         return <ImageResource key={image} image={image} index={index} />;
       })}
-      <label
-        htmlFor="fileInput"
-        className="flex flex-col justify-center items-center bg-gray-500 rounded-lg cursor-pointer m-4 py-2 text-white"
-      >
-        <input
-          id="fileInput"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        Upload
-      </label>
+      <UploadButton
+        accept="image/*"
+        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded"
+        onChange={handleFileChange}
+      />
     </>
   );
 });
