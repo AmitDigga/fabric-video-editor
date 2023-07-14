@@ -127,8 +127,11 @@ export class Store {
 
   setSelectedElement(selectedElement: EditorElement | null) {
     this.selectedElement = selectedElement;
-    if (this.canvas && selectedElement?.fabricObject) {
-      this.canvas.setActiveObject(selectedElement.fabricObject);
+    if (this.canvas) {
+      if (selectedElement?.fabricObject)
+        this.canvas.setActiveObject(selectedElement.fabricObject);
+      else
+        this.canvas.discardActiveObject();
     }
   }
   updateSelectedElement() {
