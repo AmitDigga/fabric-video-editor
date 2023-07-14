@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
-import { SeekPlayer } from "./SeekPlayer";
+import { SeekPlayer } from "./timeline-related/SeekPlayer";
 import { StoreContext } from "@/store";
 import { observer } from "mobx-react";
-import { TimeFrameView } from "./TimeFrameView";
+import { TimeFrameView } from "./timeline-related/TimeFrameView";
 
 export const TimeLine = observer(() => {
   const store = React.useContext(StoreContext);

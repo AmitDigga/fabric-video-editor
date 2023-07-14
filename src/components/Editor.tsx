@@ -8,7 +8,7 @@ import "@/utils/fabric-utils";
 import { Resources } from "./Resources";
 import { ElementsPanel } from "./panels/ElementsPanel";
 import { Menu } from "./Menu";
-import { TimeLine } from "./timeline/TimeLine";
+import { TimeLine } from "./TimeLine";
 
 export const Editor = observer(() => {
   const store = React.useContext(StoreContext);

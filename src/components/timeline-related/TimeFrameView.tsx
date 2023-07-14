@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { EditorElement } from "@/store/Store";
+import { EditorElement } from "@/types";
 import { StoreContext } from "@/store";
 import { observer } from "mobx-react";
 import DragableView from "./DragableView";

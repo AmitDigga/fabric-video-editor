@@ -1,11 +1,15 @@
 "use client";
 import React from "react";
-import { EditorElement } from "@/store/Store";
+import { EditorElement } from "@/types";
 import { StoreContext } from "@/store";
 import { observer } from "mobx-react";
 import { MdOutlineTextFields, MdMovie } from "react-icons/md";
 
-export const Element = observer((props: { element: EditorElement }) => {
+export type ElementProps = {
+  element: EditorElement;
+};
+
+export const Element = observer((props: ElementProps) => {
   const store = React.useContext(StoreContext);
   const { element } = props;
   const Icon = element.type === "video" ? MdMovie : MdOutlineTextFields;
