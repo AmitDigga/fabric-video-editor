@@ -546,10 +546,10 @@ export class Store {
             element.properties.elementId
           );
           if (!isHtmlVideoElement(videoElement)) continue;
-          const filters = [];
-          if (element.properties.effect?.type === "blackAndWhite") {
-            filters.push(new fabric.Image.filters.Grayscale());
-          }
+          // const filters = [];
+          // if (element.properties.effect?.type === "blackAndWhite") {
+          //   filters.push(new fabric.Image.filters.Grayscale());
+          // }
           const videoObject = new fabric.CoverVideo(videoElement, {
             name: element.id,
             left: element.placement.x,
@@ -562,8 +562,10 @@ export class Store {
             objectCaching: false,
             selectable: true,
             lockUniScaling: true,
-            filters: filters
+            // filters: filters,
+            customFilter: element.properties.effect.type,
           });
+
           element.fabricObject = videoObject;
           element.properties.imageObject = videoObject;
           videoElement.width = 100;
@@ -606,10 +608,10 @@ export class Store {
             element.properties.elementId
           );
           if (!isHtmlImageElement(imageElement)) continue;
-          const filters = [];
-          if (element.properties.effect?.type === "blackAndWhite") {
-            filters.push(new fabric.Image.filters.Grayscale());
-          }
+          // const filters = [];
+          // if (element.properties.effect?.type === "blackAndWhite") {
+          //   filters.push(new fabric.Image.filters.Grayscale());
+          // }
           const imageObject = new fabric.CoverImage(imageElement, {
             name: element.id,
             left: element.placement.x,
@@ -618,9 +620,10 @@ export class Store {
             objectCaching: false,
             selectable: true,
             lockUniScaling: true,
-            filters
+            // filters
+            customFilter: element.properties.effect.type,
           });
-          imageObject.applyFilters();
+          // imageObject.applyFilters();
           element.fabricObject = imageObject;
           element.properties.imageObject = imageObject;
           const image = {
