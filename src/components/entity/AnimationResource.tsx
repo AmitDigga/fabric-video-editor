@@ -21,19 +21,13 @@ export const AnimationResource = observer((props: AnimationResourceProps) => {
         <div className="text-white py-1 text-base text-left w-full">
           {ANIMATION_TYPE_TO_LABEL[props.animation.type]}
         </div>
-        {!(
-          props.animation.type === "fadeIn" ||
-          props.animation.type === "fadeOut"
-        ) ? (
-          <button
-            className="hover:bg-[#00a0f5] bg-[rgba(0,0,0,.25)] rounded z-10 text-white font-bold py-1 text-lg"
-            onClick={() => store.removeAnimation(props.animation.id)}
-          >
-            <MdDelete size="25" />
-          </button>
-        ) : null}
+        <button
+          className="hover:bg-[#00a0f5] bg-[rgba(0,0,0,.25)] rounded z-10 text-white font-bold py-1 text-lg"
+          onClick={() => store.removeAnimation(props.animation.id)}
+        >
+          <MdDelete size="25" />
+        </button>
       </div>
-
       {props.animation.type === "fadeIn" ||
       props.animation.type === "fadeOut" ? (
         <FadeAnimation

@@ -191,18 +191,6 @@ export class Store {
   addEditorElement(editorElement: EditorElement) {
     this.setEditorElements([...this.editorElements, editorElement]);
     this.refreshElements();
-    this.addAnimation({
-      id: getUid(),
-      targetId: editorElement.id,
-      duration: 10,
-      type: "fadeIn",
-    });
-    this.addAnimation({
-      id: getUid(),
-      targetId: editorElement.id,
-      duration: 10,
-      type: "fadeOut",
-    });
     this.setSelectedElement(this.editorElements[this.editorElements.length - 1]);
   }
 
@@ -259,13 +247,8 @@ export class Store {
     this.editorElements.forEach(
       e => {
         if (!e.fabricObject) return;
-        const isInside = e.timeFrame.start <= newTime && e.timeFrame.end >= newTime;
-        if (isInside && e.fabricObject.opacity === 0) {
-          // e.fabricObject.set('opacity', 1);
-        } else if (!isInside && e.fabricObject.opacity === 1) {
-          // e.fabricObject.set('opacity', 0);
-        }
-        // e.fabricObject.opacity = e.timeFrame.start <= newTime && e.timeFrame.end >= newTime ? 1 : 0;
+        const isInside = e.timeFrame.start <= newTime && newTime <= e.timeFrame.end;
+        e.fabricObject.visible = isInside;
       }
     )
   }
@@ -734,6 +717,7 @@ export class Store {
       canvas.setActiveObject(selectedEditorElement.fabricObject);
     }
     this.refreshAnimations();
+    this.updateTimeTo(this.currentTimeInMs);
     store.canvas.renderAll();
   }
 
