@@ -24,6 +24,12 @@ export const Editor = observer(() => {
     fabric.Object.prototype.cornerStyle = "circle";
     fabric.Object.prototype.cornerStrokeColor = "#0063d8";
     fabric.Object.prototype.cornerSize = 10;
+    // canvas mouse down without target should deselect active object
+    canvas.on("mouse:down", function (e) {
+      if (!e.target) {
+        store.setSelectedElement(null);
+      }
+    });
 
     store.setCanvas(canvas);
     fabric.util.requestAnimFrame(function render() {
