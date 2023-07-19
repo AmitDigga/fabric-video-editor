@@ -10,6 +10,7 @@ import {
   MdTitle,
   MdAudiotrack,
   MdOutlineFormatColorFill,
+  MdMovieFilter,
 } from "react-icons/md";
 import { Store } from "@/store/Store";
 
@@ -82,6 +83,13 @@ const MENU_OPTIONS = [
     icon: MdTransform,
     action: (store: Store) => {
       store.setSelectedMenuOption("Animation");
+    },
+  },
+  {
+    name: "Effects",
+    icon: MdMovieFilter,
+    action: (store: Store) => {
+      store.setSelectedMenuOption("Effect");
     },
   },
   {

@@ -11,11 +11,11 @@ export type EditorElementBase<T extends string, P> = {
 };
 export type VideoEditorElement = EditorElementBase<
   "video",
-  { src: string; elementId: string; imageObject?: fabric.Image }
+  { src: string; elementId: string; imageObject?: fabric.Image, effect: Effect }
 >;
 export type ImageEditorElement = EditorElementBase<
   "image",
-  { src: string; elementId: string; imageObject?: fabric.Object }
+  { src: string; elementId: string; imageObject?: fabric.Object, effect: Effect }
 >;
 
 export type AudioEditorElement = EditorElementBase<
@@ -52,6 +52,13 @@ export type TimeFrame = {
   end: number;
 };
 
+export type EffectBase<T extends string> = {
+  type: T;
+}
+
+export type BlackAndWhiteEffect = EffectBase<"none"> | EffectBase<"blackAndWhite">;
+export type Effect = BlackAndWhiteEffect;
+
 export type AnimationBase<T> = {
   id: string;
   targetId: string;
@@ -71,4 +78,5 @@ export type MenuOption =
   | "Image"
   | "Export"
   | "Animation"
+  | "Effect"
   | "Fill";

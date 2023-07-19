@@ -65,8 +65,10 @@ export const CoverImage = fabric.util.createClass(fabric.Image, {
             cropWidth,
             cropHeight,
         } = crop;
-
         ctx.save();
+        if (this.filters && this.filters.length > 0) {
+            ctx.filter = "grayscale(100%)"
+        }
         ctx.drawImage(
             this._element,
             Math.max(cropX, 0),
@@ -78,6 +80,7 @@ export const CoverImage = fabric.util.createClass(fabric.Image, {
             Math.max(0, width),
             Math.max(0, height)
         );
+        ctx.filter = "none";
         ctx.restore();
     },
 
@@ -152,6 +155,9 @@ export const CoverVideo = fabric.util.createClass(fabric.Image, {
         const videoScaledY = video.height / video.videoHeight;
 
         ctx.save();
+        if (this.filters && this.filters.length > 0) {
+            ctx.filter = "grayscale(100%)"
+        }
         ctx.drawImage(
             this._element,
             Math.max(cropX, 0) / videoScaledX,
@@ -163,6 +169,7 @@ export const CoverVideo = fabric.util.createClass(fabric.Image, {
             Math.max(0, width),
             Math.max(0, height)
         );
+        ctx.filter = "none";
         ctx.restore();
     },
 

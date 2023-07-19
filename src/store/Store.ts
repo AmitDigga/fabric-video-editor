@@ -2,7 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import { fabric } from 'fabric';
 import { getUid, isHtmlAudioElement, isHtmlImageElement, isHtmlVideoElement } from '@/utils';
 import anime from 'animejs';
-import { MenuOption, EditorElement, Animation, TimeFrame, VideoEditorElement, AudioEditorElement, Placement, ImageEditorElement } from '../types';
+import { MenuOption, EditorElement, Animation, TimeFrame, VideoEditorElement, AudioEditorElement, Placement, ImageEditorElement, Effect } from '../types';
 
 export class Store {
   canvas: fabric.Canvas | null
@@ -66,6 +66,15 @@ export class Store {
     if (this.canvas) {
       this.canvas.backgroundColor = backgroundColor;
     }
+  }
+
+  updateEffect(id: string, effect: Effect) {
+    const index = this.editorElements.findIndex((element) => element.id === id);
+    const element = this.editorElements[index];
+    if (isEditorVideoElement(element) || isEditorImageElement(element)) {
+      element.properties.effect = effect;
+    }
+    this.refreshElements();
   }
 
   setVideos(videos: string[]) {
@@ -299,6 +308,9 @@ export class Store {
         properties: {
           elementId: `video-${id}`,
           src: videoElement.src,
+          effect: {
+            type: "none",
+          }
         },
       },
     );
@@ -332,6 +344,9 @@ export class Store {
         properties: {
           elementId: `image-${id}`,
           src: imageElement.src,
+          effect: {
+            type: "none",
+          }
         },
       },
     );
@@ -531,6 +546,10 @@ export class Store {
             element.properties.elementId
           );
           if (!isHtmlVideoElement(videoElement)) continue;
+          const filters = [];
+          if (element.properties.effect?.type === "blackAndWhite") {
+            filters.push(new fabric.Image.filters.Grayscale());
+          }
           const videoObject = new fabric.CoverVideo(videoElement, {
             name: element.id,
             left: element.placement.x,
@@ -543,6 +562,7 @@ export class Store {
             objectCaching: false,
             selectable: true,
             lockUniScaling: true,
+            filters: filters
           });
           element.fabricObject = videoObject;
           element.properties.imageObject = videoObject;
@@ -586,6 +606,10 @@ export class Store {
             element.properties.elementId
           );
           if (!isHtmlImageElement(imageElement)) continue;
+          const filters = [];
+          if (element.properties.effect?.type === "blackAndWhite") {
+            filters.push(new fabric.Image.filters.Grayscale());
+          }
           const imageObject = new fabric.CoverImage(imageElement, {
             name: element.id,
             left: element.placement.x,
@@ -594,7 +618,9 @@ export class Store {
             objectCaching: false,
             selectable: true,
             lockUniScaling: true,
+            filters
           });
+          imageObject.applyFilters();
           element.fabricObject = imageObject;
           element.properties.imageObject = imageObject;
           const image = {
@@ -711,18 +737,18 @@ export class Store {
 }
 
 
-function isEditorAudioElement(
+export function isEditorAudioElement(
   element: EditorElement
 ): element is AudioEditorElement {
   return element.type === "audio";
 }
-function isEditorVideoElement(
+export function isEditorVideoElement(
   element: EditorElement
 ): element is VideoEditorElement {
   return element.type === "video";
 }
 
-function isEditorImageElement(
+export function isEditorImageElement(
   element: EditorElement
 ): element is ImageEditorElement {
   return element.type === "image";
