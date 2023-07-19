@@ -86,9 +86,13 @@ export class Store {
     this.animations = [...this.animations, animation];
     this.refreshAnimations();
   }
+  updateAnimation(id: string, animation: Animation) {
+    const index = this.animations.findIndex((a) => a.id === id);
+    this.animations[index] = animation;
+    this.refreshAnimations();
+  }
 
   refreshAnimations() {
-    this.animations.sort((a, b) => a.endTime - b.endTime);
     anime.remove(this.animationTimeLine);
     this.animationTimeLine = anime.timeline({
       duration: this.maxTime,
@@ -97,27 +101,33 @@ export class Store {
     for (let i = 0; i < this.animations.length; i++) {
       const animation = this.animations[i];
       const editorElement = this.editorElements.find((element) => element.id === animation.targetId);
-      const lastAnimationWithSameTarget = this.animations.slice(0, i).reverse().find((anim) => anim.targetId === animation.targetId);
-      let proprtyStartValue = 0;
-      let startTime = 0;
-      if (lastAnimationWithSameTarget) {
-        proprtyStartValue = lastAnimationWithSameTarget.targetValue;
-        startTime = lastAnimationWithSameTarget.endTime;
-      }
-
       const fabricObject = editorElement?.fabricObject;
       if (!editorElement || !fabricObject) {
         continue;
       }
-      this.animationTimeLine.add({
-        targets: fabricObject,
-        [animation.targetProperty]: [proprtyStartValue, animation.targetValue],
-        duration: animation.endTime - startTime,
-        easing: animation.easing,
-      }, startTime);
-
+      switch (animation.type) {
+        case "fadeIn": {
+          this.animationTimeLine.add({
+            opacity: [0, 1],
+            duration: animation.duration,
+            targets: fabricObject,
+            easing: 'linear',
+          }, editorElement.timeFrame.start);
+          break;
+        }
+        case "fadeOut": {
+          this.animationTimeLine.add({
+            opacity: [1, 0],
+            duration: animation.duration,
+            targets: fabricObject,
+            easing: 'linear',
+          }, editorElement.timeFrame.end - animation.duration);
+          break
+        }
+      }
     }
   }
+
   removeAnimation(id: string) {
     this.animations = this.animations.filter(
       (animation) => animation.id !== id
@@ -173,6 +183,18 @@ export class Store {
     this.setEditorElements([...this.editorElements, editorElement]);
     this.setSelectedElement(editorElement);
     this.refreshElements();
+    this.addAnimation({
+      id: getUid(),
+      targetId: editorElement.id,
+      duration: 10,
+      type: "fadeIn",
+    });
+    this.addAnimation({
+      id: getUid(),
+      targetId: editorElement.id,
+      duration: 10,
+      type: "fadeOut",
+    });
   }
 
   removeEditorElement(id: string) {
@@ -228,7 +250,13 @@ export class Store {
     this.editorElements.forEach(
       e => {
         if (!e.fabricObject) return;
-        e.fabricObject.opacity = e.timeFrame.start <= newTime && e.timeFrame.end >= newTime ? 1 : 0;
+        const isInside = e.timeFrame.start <= newTime && e.timeFrame.end >= newTime;
+        if (isInside && e.fabricObject.opacity === 0) {
+          // e.fabricObject.set('opacity', 1);
+        } else if (!isInside && e.fabricObject.opacity === 1) {
+          // e.fabricObject.set('opacity', 0);
+        }
+        // e.fabricObject.opacity = e.timeFrame.start <= newTime && e.timeFrame.end >= newTime ? 1 : 0;
       }
     )
   }
@@ -676,6 +704,7 @@ export class Store {
     if (selectedEditorElement && selectedEditorElement.fabricObject) {
       canvas.setActiveObject(selectedEditorElement.fabricObject);
     }
+    this.refreshAnimations();
     store.canvas.renderAll();
   }
 

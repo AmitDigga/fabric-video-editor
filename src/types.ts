@@ -52,21 +52,17 @@ export type TimeFrame = {
   end: number;
 };
 
-export type AnimationKeyFrame = {
-  id: string;
-  time: number;
-  placement: Placement;
-};
-
-export type Animation = {
+export type AnimationBase<T> = {
   id: string;
   targetId: string;
-  endTime: number;
-  easing: "linear";
-  targetProperty: keyof fabric.Object;
-  targetValue: number;
-  delay?: number;
-};
+  duration: number;
+  type: T;
+}
+
+export type FadeInAnimation = AnimationBase<"fadeIn">;
+export type FadeOutAnimation = AnimationBase<"fadeOut">;
+
+export type Animation = FadeInAnimation | FadeOutAnimation;
 
 export type MenuOption =
   | "Video"
