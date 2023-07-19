@@ -181,7 +181,6 @@ export class Store {
 
   addEditorElement(editorElement: EditorElement) {
     this.setEditorElements([...this.editorElements, editorElement]);
-    this.setSelectedElement(editorElement);
     this.refreshElements();
     this.addAnimation({
       id: getUid(),
@@ -195,6 +194,7 @@ export class Store {
       duration: 10,
       type: "fadeOut",
     });
+    this.setSelectedElement(this.editorElements[this.editorElements.length - 1]);
   }
 
   removeEditorElement(id: string) {
