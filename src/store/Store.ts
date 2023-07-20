@@ -133,6 +133,44 @@ export class Store {
           }, editorElement.timeFrame.end - animation.duration);
           break
         }
+        case "slideIn": {
+          const direction = animation.properties.direction;
+          const targetPosition = {
+            left: editorElement.placement.x,
+            top: editorElement.placement.y,
+          }
+          const startPosition = {
+            left: (direction === "left" ? - editorElement.placement.width : direction === "right" ? this.canvas?.width : editorElement.placement.x),
+            top: (direction === "top" ? - editorElement.placement.height : direction === "bottom" ? this.canvas?.height : editorElement.placement.y),
+          }
+          this.animationTimeLine.add({
+            left: [startPosition.left, targetPosition.left],
+            top: [startPosition.top, targetPosition.top],
+            duration: animation.duration,
+            targets: fabricObject,
+            easing: 'linear',
+          }, editorElement.timeFrame.start);
+          break
+        }
+        case "slideOut": {
+          const direction = animation.properties.direction;
+          const startPosition = {
+            left: editorElement.placement.x,
+            top: editorElement.placement.y,
+          }
+          const targetPosition = {
+            left: (direction === "left" ? - editorElement.placement.width : direction === "right" ? this.canvas?.width : editorElement.placement.x),
+            top: (direction === "top" ? -100 - editorElement.placement.height : direction === "bottom" ? this.canvas?.height : editorElement.placement.y),
+          }
+          this.animationTimeLine.add({
+            left: [startPosition.left, targetPosition.left],
+            top: [startPosition.top, targetPosition.top],
+            duration: animation.duration,
+            targets: fabricObject,
+            easing: 'linear',
+          }, editorElement.timeFrame.end - animation.duration);
+          break
+        }
       }
     }
   }
@@ -160,6 +198,7 @@ export class Store {
   setEditorElements(editorElements: EditorElement[]) {
     this.editorElements = editorElements;
     this.updateSelectedElement();
+    // this.refreshAnimations();
   }
 
   updateEditorElement(editorElement: EditorElement) {
@@ -185,6 +224,7 @@ export class Store {
     this.updateVideoElements();
     this.updateAudioElements();
     this.updateEditorElement(newEditorElement);
+    this.refreshAnimations();
   }
 
 

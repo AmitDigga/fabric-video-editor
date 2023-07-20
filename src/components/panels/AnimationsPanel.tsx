@@ -18,6 +18,13 @@ export const AnimationsPanel = observer(() => {
     return animation.type === "fadeOut";
   });
 
+  const hasSlideInAnimation = selectedElementAnimations.some((animation) => {
+    return animation.type === "slideIn";
+  });
+  const hasSlideOutAnimation = selectedElementAnimations.some((animation) => {
+    return animation.type === "slideOut";
+  });
+
   return (
     <>
       <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
@@ -32,6 +39,7 @@ export const AnimationsPanel = observer(() => {
               type: "fadeIn",
               targetId: selectedElement?.id ?? "",
               duration: 1000,
+              properties: {},
             });
           }}
         >
@@ -47,10 +55,43 @@ export const AnimationsPanel = observer(() => {
               type: "fadeOut",
               targetId: selectedElement?.id ?? "",
               duration: 1000,
+              properties: {},
             });
           }}
         >
           Add Fade Out
+        </div>
+      ) : null}
+      {selectedElement && !hasSlideInAnimation ? (
+        <div
+          className="text-sm px-[16px] py-[8px] font-semibold hover:bg-slate-700 hover:text-white cursor-pointer"
+          onClick={() => {
+            store.addAnimation({
+              id: getUid(),
+              type: "slideIn",
+              targetId: selectedElement?.id ?? "",
+              duration: 1000,
+              properties: { direction: "left" },
+            });
+          }}
+        >
+          Add Slide In
+        </div>
+      ) : null}
+      {selectedElement && !hasSlideOutAnimation ? (
+        <div
+          className="text-sm px-[16px] py-[8px] font-semibold hover:bg-slate-700 hover:text-white cursor-pointer"
+          onClick={() => {
+            store.addAnimation({
+              id: getUid(),
+              type: "slideOut",
+              targetId: selectedElement?.id ?? "",
+              duration: 1000,
+              properties: { direction: "right" },
+            });
+          }}
+        >
+          Add Slide Out
         </div>
       ) : null}
       {selectedElementAnimations.map((animation) => {
