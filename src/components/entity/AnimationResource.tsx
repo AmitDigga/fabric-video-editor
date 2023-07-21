@@ -134,6 +134,23 @@ export const SlideAnimation = observer(
             <option value="bottom">Bottom</option>
           </select>
         </div>
+        <div className="flex flex-row items-center justify-between my-1">
+          <div className="text-white text-xs">Use Mask</div>
+          <input
+            className="bg-slate-100 text-black rounded-lg px-2 py-1 ml-2 w-16 text-xs"
+            type="checkbox"
+            checked={props.animation.properties.useClipPath}
+            onChange={(e) => {
+              store.updateAnimation(props.animation.id, {
+                ...props.animation,
+                properties: {
+                  ...props.animation.properties,
+                  useClipPath: e.target.checked,
+                },
+              });
+            }}
+          />
+        </div>
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import { EffecType } from "@/types";
+import { EditorElement, EffecType } from "@/types";
 import { fabric } from "fabric";
 // https://jsfiddle.net/i_prikot/pw7yhaLf/
 
@@ -201,3 +201,24 @@ declare module "fabric" {
 fabric.CoverImage = CoverImage;
 fabric.CoverVideo = CoverVideo;
 
+
+export class FabricUitls {
+    static getClipMaskRect(editorElement: EditorElement, extraOffset: number) {
+        const extraOffsetX = extraOffset / editorElement.placement.scaleX;
+        const extraOffsetY = extraOffsetX / editorElement.placement.scaleY;
+        const clipRectangle = new fabric.Rect({
+            left: editorElement.placement.x - extraOffsetX,
+            top: editorElement.placement.y - extraOffsetY,
+            width: editorElement.placement.width + extraOffsetX * 2,
+            height: editorElement.placement.height + extraOffsetY * 2,
+            scaleX: editorElement.placement.scaleX,
+            scaleY: editorElement.placement.scaleY,
+            absolutePositioned: true,
+            fill: 'transparent',
+            stroke: 'transparent',
+            opacity: .5,
+            strokeWidth: 0,
+        });
+        return clipRectangle;
+    }
+}

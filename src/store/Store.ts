@@ -3,6 +3,7 @@ import { fabric } from 'fabric';
 import { getUid, isHtmlAudioElement, isHtmlImageElement, isHtmlVideoElement } from '@/utils';
 import anime from 'animejs';
 import { MenuOption, EditorElement, Animation, TimeFrame, VideoEditorElement, AudioEditorElement, Placement, ImageEditorElement, Effect } from '../types';
+import { FabricUitls } from '@/utils/fabric-utils';
 
 export class Store {
   canvas: fabric.Canvas | null
@@ -114,6 +115,7 @@ export class Store {
       if (!editorElement || !fabricObject) {
         continue;
       }
+      fabricObject.clipPath = undefined;
       switch (animation.type) {
         case "fadeIn": {
           this.animationTimeLine.add({
@@ -143,6 +145,10 @@ export class Store {
             left: (direction === "left" ? - editorElement.placement.width : direction === "right" ? this.canvas?.width : editorElement.placement.x),
             top: (direction === "top" ? - editorElement.placement.height : direction === "bottom" ? this.canvas?.height : editorElement.placement.y),
           }
+          if (animation.properties.useClipPath) {
+            const clipRectangle = FabricUitls.getClipMaskRect(editorElement, 50);
+            fabricObject.set('clipPath', clipRectangle)
+          }
           this.animationTimeLine.add({
             left: [startPosition.left, targetPosition.left],
             top: [startPosition.top, targetPosition.top],
@@ -161,6 +167,10 @@ export class Store {
           const targetPosition = {
             left: (direction === "left" ? - editorElement.placement.width : direction === "right" ? this.canvas?.width : editorElement.placement.x),
             top: (direction === "top" ? -100 - editorElement.placement.height : direction === "bottom" ? this.canvas?.height : editorElement.placement.y),
+          }
+          if (animation.properties.useClipPath) {
+            const clipRectangle = FabricUitls.getClipMaskRect(editorElement, 50);
+            fabricObject.set('clipPath', clipRectangle)
           }
           this.animationTimeLine.add({
             left: [startPosition.left, targetPosition.left],

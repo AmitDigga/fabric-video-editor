@@ -75,7 +75,7 @@ export const AnimationsPanel = observer(() => {
               type: "slideIn",
               targetId: selectedElement?.id ?? "",
               duration: 1000,
-              properties: { direction: "left" },
+              properties: { direction: "left", useClipPath: false },
             });
           }}
         >
@@ -91,7 +91,7 @@ export const AnimationsPanel = observer(() => {
               type: "slideOut",
               targetId: selectedElement?.id ?? "",
               duration: 1000,
-              properties: { direction: "right" },
+              properties: { direction: "right", useClipPath: false },
             });
           }}
         >

@@ -75,11 +75,13 @@ export type BreatheAnimation = AnimationBase<"breathe">
 
 export type SlideDirection = "left" | "right" | "top" | "bottom";
 export type SlideInAnimation = AnimationBase<"slideIn", {
-  direction: SlideDirection
+  direction: SlideDirection,
+  useClipPath: boolean
 }>;
 
 export type SlideOutAnimation = AnimationBase<"slideOut", {
   direction: SlideDirection
+  useClipPath: boolean
 }>;
 
 export type Animation =
