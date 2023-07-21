@@ -171,6 +171,42 @@ export class Store {
           }, editorElement.timeFrame.end - animation.duration);
           break
         }
+        case "breathe": {
+          const itsSlideInAnimation = this.animations.find((a) => a.targetId === animation.targetId && (a.type === "slideIn"));
+          const itsSlideOutAnimation = this.animations.find((a) => a.targetId === animation.targetId && (a.type === "slideOut"));
+          const timeEndOfSlideIn = itsSlideInAnimation ? editorElement.timeFrame.start + itsSlideInAnimation.duration : editorElement.timeFrame.start;
+          const timeStartOfSlideOut = itsSlideOutAnimation ? editorElement.timeFrame.end - itsSlideOutAnimation.duration : editorElement.timeFrame.end;
+          if (timeEndOfSlideIn > timeStartOfSlideOut) {
+            continue;
+          }
+          const duration = timeStartOfSlideOut - timeEndOfSlideIn;
+          const easeFactor = 4;
+          const suitableTimeForHeartbeat = 1000 * 60 / 72 * easeFactor
+          const upScale = 1.05;
+          const currentScaleX = fabricObject.scaleX ?? 1;
+          const currentScaleY = fabricObject.scaleY ?? 1;
+          const finalScaleX = currentScaleX * upScale;
+          const finalScaleY = currentScaleY * upScale;
+          const totalHeartbeats = Math.floor(duration / suitableTimeForHeartbeat);
+          if (totalHeartbeats < 1) {
+            continue;
+          }
+          const keyframes = [];
+          for (let i = 0; i < totalHeartbeats; i++) {
+            keyframes.push({ scaleX: finalScaleX, scaleY: finalScaleY });
+            keyframes.push({ scaleX: currentScaleX, scaleY: currentScaleY });
+          }
+
+          this.animationTimeLine.add({
+            duration: duration,
+            targets: fabricObject,
+            keyframes,
+            easing: 'linear',
+            loop: true
+          }, timeEndOfSlideIn);
+
+          break
+        }
       }
     }
   }

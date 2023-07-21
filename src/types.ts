@@ -71,6 +71,8 @@ export type AnimationBase<T, P = {}> = {
 export type FadeInAnimation = AnimationBase<"fadeIn">;
 export type FadeOutAnimation = AnimationBase<"fadeOut">;
 
+export type BreatheAnimation = AnimationBase<"breathe">
+
 export type SlideDirection = "left" | "right" | "top" | "bottom";
 export type SlideInAnimation = AnimationBase<"slideIn", {
   direction: SlideDirection
@@ -84,7 +86,8 @@ export type Animation =
   FadeInAnimation
   | FadeOutAnimation
   | SlideInAnimation
-  | SlideOutAnimation;
+  | SlideOutAnimation
+  | BreatheAnimation;
 
 export type MenuOption =
   | "Video"

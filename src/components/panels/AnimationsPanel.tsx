@@ -25,6 +25,10 @@ export const AnimationsPanel = observer(() => {
     return animation.type === "slideOut";
   });
 
+  const hasConsantAnimation = selectedElementAnimations.some((animation) => {
+    return animation.type === "breathe";
+  });
+
   return (
     <>
       <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
@@ -92,6 +96,22 @@ export const AnimationsPanel = observer(() => {
           }}
         >
           Add Slide Out
+        </div>
+      ) : null}
+      {selectedElement && !hasConsantAnimation ? (
+        <div
+          className="text-sm px-[16px] py-[8px] font-semibold hover:bg-slate-700 hover:text-white cursor-pointer"
+          onClick={() => {
+            store.addAnimation({
+              id: getUid(),
+              type: "breathe",
+              targetId: selectedElement?.id ?? "",
+              duration: 1000,
+              properties: {},
+            });
+          }}
+        >
+          Add Breathing
         </div>
       ) : null}
       {selectedElementAnimations.map((animation) => {
