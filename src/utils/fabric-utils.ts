@@ -1,9 +1,11 @@
+import { EditorElement, EffecType } from "@/types";
 import { fabric } from "fabric";
 // https://jsfiddle.net/i_prikot/pw7yhaLf/
 
 export const CoverImage = fabric.util.createClass(fabric.Image, {
     type: "coverImage",
 
+    customFilter: "none",
     disableCrop: false,
     cropWidth: 0,
     cropHeight: 0,
@@ -65,8 +67,9 @@ export const CoverImage = fabric.util.createClass(fabric.Image, {
             cropWidth,
             cropHeight,
         } = crop;
-
         ctx.save();
+        const customFilter: EffecType = this.customFilter;
+        ctx.filter = getFilterFromEffectType(customFilter);
         ctx.drawImage(
             this._element,
             Math.max(cropX, 0),
@@ -78,6 +81,7 @@ export const CoverImage = fabric.util.createClass(fabric.Image, {
             Math.max(0, width),
             Math.max(0, height)
         );
+        ctx.filter = "none";
         ctx.restore();
     },
 
@@ -85,7 +89,7 @@ export const CoverImage = fabric.util.createClass(fabric.Image, {
 
 export const CoverVideo = fabric.util.createClass(fabric.Image, {
     type: "coverVideo",
-
+    customFilter: "none",
     disableCrop: false,
     cropWidth: 0,
     cropHeight: 0,
@@ -152,6 +156,8 @@ export const CoverVideo = fabric.util.createClass(fabric.Image, {
         const videoScaledY = video.height / video.videoHeight;
 
         ctx.save();
+        const customFilter: EffecType = this.customFilter;
+        ctx.filter = getFilterFromEffectType(customFilter);
         ctx.drawImage(
             this._element,
             Math.max(cropX, 0) / videoScaledX,
@@ -163,10 +169,26 @@ export const CoverVideo = fabric.util.createClass(fabric.Image, {
             Math.max(0, width),
             Math.max(0, height)
         );
+        ctx.filter = "none";
         ctx.restore();
     },
 
 });
+
+function getFilterFromEffectType(effectType: EffecType){
+    switch(effectType){
+        case "blackAndWhite":
+            return "grayscale(100%)";
+        case "sepia":
+            return "sepia(100%)";
+        case "invert":
+            return "invert(100%)";
+        case "saturate":
+            return "saturate(100%)";
+        default:
+            return "none";
+    }
+}
 
 
 
@@ -190,3 +212,24 @@ declare module "fabric" {
 fabric.CoverImage = CoverImage;
 fabric.CoverVideo = CoverVideo;
 
+
+export class FabricUitls {
+    static getClipMaskRect(editorElement: EditorElement, extraOffset: number) {
+        const extraOffsetX = extraOffset / editorElement.placement.scaleX;
+        const extraOffsetY = extraOffsetX / editorElement.placement.scaleY;
+        const clipRectangle = new fabric.Rect({
+            left: editorElement.placement.x - extraOffsetX,
+            top: editorElement.placement.y - extraOffsetY,
+            width: editorElement.placement.width + extraOffsetX * 2,
+            height: editorElement.placement.height + extraOffsetY * 2,
+            scaleX: editorElement.placement.scaleX,
+            scaleY: editorElement.placement.scaleY,
+            absolutePositioned: true,
+            fill: 'transparent',
+            stroke: 'transparent',
+            opacity: .5,
+            strokeWidth: 0,
+        });
+        return clipRectangle;
+    }
+}

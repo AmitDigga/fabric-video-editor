@@ -11,11 +11,11 @@ export type EditorElementBase<T extends string, P> = {
 };
 export type VideoEditorElement = EditorElementBase<
   "video",
-  { src: string; elementId: string; imageObject?: fabric.Image }
+  { src: string; elementId: string; imageObject?: fabric.Image, effect: Effect }
 >;
 export type ImageEditorElement = EditorElementBase<
   "image",
-  { src: string; elementId: string; imageObject?: fabric.Object }
+  { src: string; elementId: string; imageObject?: fabric.Object, effect: Effect }
 >;
 
 export type AudioEditorElement = EditorElementBase<
@@ -28,6 +28,7 @@ export type TextEditorElement = EditorElementBase<
     text: string;
     fontSize: number;
     fontWeight: number;
+    splittedTexts: fabric.Text[];
   }
 >;
 
@@ -52,21 +53,51 @@ export type TimeFrame = {
   end: number;
 };
 
-export type AnimationKeyFrame = {
-  id: string;
-  time: number;
-  placement: Placement;
-};
+export type EffectBase<T extends string> = {
+  type: T;
+}
 
-export type Animation = {
+export type BlackAndWhiteEffect = EffectBase<"none"> | 
+EffectBase<"blackAndWhite"> | 
+EffectBase<"sepia"> | 
+EffectBase<"invert"> |
+EffectBase<"saturate"> ;
+export type Effect = BlackAndWhiteEffect;
+export type EffecType = Effect["type"];
+
+export type AnimationBase<T, P = {}> = {
   id: string;
   targetId: string;
-  endTime: number;
-  easing: "linear";
-  targetProperty: keyof fabric.Object;
-  targetValue: number;
-  delay?: number;
-};
+  duration: number;
+  type: T;
+  properties: P;
+}
+
+export type FadeInAnimation = AnimationBase<"fadeIn">;
+export type FadeOutAnimation = AnimationBase<"fadeOut">;
+
+export type BreatheAnimation = AnimationBase<"breathe">
+
+export type SlideDirection = "left" | "right" | "top" | "bottom";
+export type SlideTextType = 'none'|'character';
+export type SlideInAnimation = AnimationBase<"slideIn", {
+  direction: SlideDirection,
+  useClipPath: boolean,
+  textType:'none'|'character'
+}>;
+
+export type SlideOutAnimation = AnimationBase<"slideOut", {
+  direction: SlideDirection,
+  useClipPath: boolean,
+  textType:SlideTextType,
+}>;
+
+export type Animation =
+  FadeInAnimation
+  | FadeOutAnimation
+  | SlideInAnimation
+  | SlideOutAnimation
+  | BreatheAnimation;
 
 export type MenuOption =
   | "Video"
@@ -75,4 +106,5 @@ export type MenuOption =
   | "Image"
   | "Export"
   | "Animation"
+  | "Effect"
   | "Fill";
