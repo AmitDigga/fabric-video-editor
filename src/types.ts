@@ -57,7 +57,11 @@ export type EffectBase<T extends string> = {
   type: T;
 }
 
-export type BlackAndWhiteEffect = EffectBase<"none"> | EffectBase<"blackAndWhite">;
+export type BlackAndWhiteEffect = EffectBase<"none"> | 
+EffectBase<"blackAndWhite"> | 
+EffectBase<"sepia"> | 
+EffectBase<"invert"> |
+EffectBase<"saturate"> ;
 export type Effect = BlackAndWhiteEffect;
 export type EffecType = Effect["type"];
 

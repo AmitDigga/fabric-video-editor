@@ -69,9 +69,7 @@ export const CoverImage = fabric.util.createClass(fabric.Image, {
         } = crop;
         ctx.save();
         const customFilter: EffecType = this.customFilter;
-        if (customFilter === "blackAndWhite") {
-            ctx.filter = "grayscale(100%)"
-        }
+        ctx.filter = getFilterFromEffectType(customFilter);
         ctx.drawImage(
             this._element,
             Math.max(cropX, 0),
@@ -159,9 +157,7 @@ export const CoverVideo = fabric.util.createClass(fabric.Image, {
 
         ctx.save();
         const customFilter: EffecType = this.customFilter;
-        if (customFilter === "blackAndWhite") {
-            ctx.filter = "grayscale(100%)"
-        }
+        ctx.filter = getFilterFromEffectType(customFilter);
         ctx.drawImage(
             this._element,
             Math.max(cropX, 0) / videoScaledX,
@@ -178,6 +174,21 @@ export const CoverVideo = fabric.util.createClass(fabric.Image, {
     },
 
 });
+
+function getFilterFromEffectType(effectType: EffecType){
+    switch(effectType){
+        case "blackAndWhite":
+            return "grayscale(100%)";
+        case "sepia":
+            return "sepia(100%)";
+        case "invert":
+            return "invert(100%)";
+        case "saturate":
+            return "saturate(100%)";
+        default:
+            return "none";
+    }
+}
 
 
 

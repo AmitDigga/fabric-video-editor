@@ -3,11 +3,14 @@ import React from "react";
 import { StoreContext } from "@/store";
 // import { formatTimeToMinSec } from "@/utils";
 import { observer } from "mobx-react";
-import { VideoEditorElement, ImageEditorElement } from "@/types";
+import { VideoEditorElement, ImageEditorElement, EffecType } from "@/types";
 
 const EFFECT_TYPE_TO_LABEL: Record<string, string> = {
   blackAndWhite: "Black and White",
   none: "None",
+  saturate: "Saturate",
+  sepia: "Sepia",
+  invert: "Invert",
 };
 export type EffectResourceProps = {
   editorElement: VideoEditorElement | ImageEditorElement;
@@ -27,10 +30,9 @@ export const EffectResource = observer((props: EffectResourceProps) => {
         value={props.editorElement.properties.effect.type}
         onChange={(e) => {
           const type = e.target.value;
-          if (type === "blackAndWhite" || type === "none")
-            store.updateEffect(props.editorElement.id, {
-              type: type,
-            });
+          store.updateEffect(props.editorElement.id, {
+            type: type as EffecType,
+          });
         }}
       >
         {Object.keys(EFFECT_TYPE_TO_LABEL).map((type) => {
