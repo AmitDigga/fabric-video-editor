@@ -28,6 +28,7 @@ export type TextEditorElement = EditorElementBase<
     text: string;
     fontSize: number;
     fontWeight: number;
+    splittedTexts: fabric.Text[];
   }
 >;
 
@@ -74,14 +75,17 @@ export type FadeOutAnimation = AnimationBase<"fadeOut">;
 export type BreatheAnimation = AnimationBase<"breathe">
 
 export type SlideDirection = "left" | "right" | "top" | "bottom";
+export type SlideTextType = 'none'|'character';
 export type SlideInAnimation = AnimationBase<"slideIn", {
   direction: SlideDirection,
-  useClipPath: boolean
+  useClipPath: boolean,
+  textType:'none'|'character'
 }>;
 
 export type SlideOutAnimation = AnimationBase<"slideOut", {
-  direction: SlideDirection
-  useClipPath: boolean
+  direction: SlideDirection,
+  useClipPath: boolean,
+  textType:SlideTextType,
 }>;
 
 export type Animation =

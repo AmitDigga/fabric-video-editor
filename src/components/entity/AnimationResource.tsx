@@ -11,6 +11,7 @@ import {
   SlideDirection,
   SlideInAnimation,
   SlideOutAnimation,
+  SlideTextType,
 } from "@/types";
 
 const ANIMATION_TYPE_TO_LABEL: Record<string, string> = {
@@ -150,6 +151,25 @@ export const SlideAnimation = observer(
               });
             }}
           />
+        </div>
+        <div className="flex flex-row items-center justify-between my-1">
+          <div className="text-white text-xs">Type</div>
+          <select
+            className="bg-slate-100 text-black rounded-lg px-2 py-1 ml-2 w-16 text-xs"
+            value={props.animation.properties.textType}
+            onChange={(e) => {
+              store.updateAnimation(props.animation.id, {
+                ...props.animation,
+                properties: {
+                  ...props.animation.properties,
+                  textType: e.target.value as SlideTextType,
+                },
+              });
+            }}
+          >
+            <option value="none">None</option>
+            <option value="character">Character</option>
+          </select>
         </div>
       </div>
     );
