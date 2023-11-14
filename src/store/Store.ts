@@ -4,6 +4,8 @@ import { getUid, isHtmlAudioElement, isHtmlImageElement, isHtmlVideoElement } fr
 import anime, { get } from 'animejs';
 import { MenuOption, EditorElement, Animation, TimeFrame, VideoEditorElement, AudioEditorElement, Placement, ImageEditorElement, Effect, TextEditorElement } from '../types';
 import { FabricUitls } from '@/utils/fabric-utils';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import {  toBlobURL } from '@ffmpeg/util';
 
 export class Store {
   canvas: fabric.Canvas | null
@@ -25,6 +27,9 @@ export class Store {
   currentKeyFrame: number;
   fps: number;
 
+  possibleVideoFormats: string[] = ['mp4', 'webm'];
+  selectedVideoFormat: 'mp4' | 'webm';
+
   constructor() {
     this.canvas = null;
     this.videos = [];
@@ -40,6 +45,7 @@ export class Store {
     this.animations = [];
     this.animationTimeLine = anime.timeline();
     this.selectedMenuOption = 'Video';
+    this.selectedVideoFormat = 'mp4';
     makeAutoObservable(this);
   }
 
@@ -602,7 +608,117 @@ export class Store {
 
   // }
 
-  saveCanvasToVideoWithAUdio() {
+  setVideoFormat(format: 'mp4' | 'webm') {
+    this.selectedVideoFormat = format;
+  }
+
+  saveCanvasToVideoWithAudio() {
+    if(this.selectedVideoFormat === 'webm'){
+      this.saveCanvasToVideoWithAudioWebm();
+    }else if(this.selectedVideoFormat === 'mp4'){
+      this.saveCanvasToVideoWithAudioMp4();
+    }
+  }
+  saveCanvasToVideoWithAudioMp4() {
+    const store = this;
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const frames:string[] = [];
+    // const frames:Uint8Array[] = [];
+    const animationDuration = this.maxTime; // milliseconds
+    const frameRate = this.fps; // frames per second
+
+    function captureFrame() {
+      if(!ctx) return;
+      store.handleSeek(currentTime);
+      const frame = canvas.toDataURL('image/jpeg', 1);
+      frames.push(frame);
+
+      // const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+      // const frame = canvas.toDataURL('image/jpeg', 0.8);
+      // if (!imageData) return;
+      // const frame = new Uint8Array(imageData.data);
+      // frames.push(frame);
+      // console.log("captured frame", frame);
+      console.log("captured frame", frame);
+    }
+
+    const interval = 1000 / frameRate;
+    let currentTime = 0;
+    var BASE64_MARKER = ';base64,';
+
+    function convertDataURIToBinary(dataURI:string) : Uint8Array{
+      var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
+      var base64 = dataURI.substring(base64Index);
+      var raw = window.atob(base64);
+      var rawLength = raw.length;
+      var array = new Uint8Array(new ArrayBuffer(rawLength));
+
+      for(let i = 0; i < rawLength; i++) {
+        array[i] = raw.charCodeAt(i);
+      }
+      return array;
+    }
+    async function onAllFrameCaptured() {
+        const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd"
+        const ffmpeg = new FFmpeg();
+        ffmpeg.on('progress', (progress) => {
+          console.log('progress', progress);
+        })
+        ffmpeg.on('log', (log) => {
+          console.log('log', log);
+        })
+        await ffmpeg.load({
+           coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+            // workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
+        });
+        
+        const promises = frames.map((frame, index) => {
+          const imageName = `img_${String(index).padStart(4, '0')}.jpeg`;
+          const data = convertDataURIToBinary(frame);
+          ffmpeg.writeFile(imageName, data);
+        })
+
+        await Promise.all(promises);
+        console.log('frames written')
+        await ffmpeg.exec(
+          ["-f", "image2",'-analyzeduration',"2147483647",'-probesize','2147483647', "-i", "img_%04d.jpeg", "-vf", `fps=${frameRate},pad=ceil(iw/2)*2:ceil(ih/2)*2`, "out.mp4"],
+        )
+        const data = await ffmpeg.readFile('out.mp4');
+        const blob = new Blob([data], { type: "video/mp4" });
+        let newVideo = document.getElementById('output-video') as HTMLVideoElement;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "video.mp4";
+        a.click();
+        if(!newVideo){
+          newVideo = document.createElement('video');
+          newVideo.height = 500;
+          newVideo.width = 800;
+          newVideo.id = "output-video";
+          newVideo.src = url;
+          newVideo.controls = true;
+          document.body.appendChild(newVideo);
+        }else{
+          newVideo.src = url;
+        }
+    }
+
+    const captureInterval = setInterval(() => {
+        captureFrame();
+        currentTime += interval;
+        if (currentTime >= animationDuration) {
+            clearInterval(captureInterval);
+            onAllFrameCaptured();
+        }
+    }, interval);
+  }
+  saveCanvasToVideoWithAudioWebm() {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
     const stream = canvas.captureStream(30);
     const audioElements = this.editorElements.filter(isEditorAudioElement)

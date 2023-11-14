@@ -31,6 +31,34 @@ export const ExportVideoPanel = observer(() => {
           <div className="text-xs mr-2">Todo</div>
         </div>
       </div>
+      {/*  Format selection with radio button */}
+      <div className="px-[16px]">
+        <div className="text-xs font-semibold mr-2">Video Format:</div>
+        <div className="flex flex-row items-center my-2">
+          <input
+            type="radio"
+            className="mr-2"
+            name="video-format"
+            value="mp4"
+            checked={store.selectedVideoFormat === "mp4"}
+            onChange={(e) => {
+              store.setVideoFormat("mp4");
+            }}
+          />
+          <div className="text-xs mr-2">MP4</div>
+          <input
+            type="radio"
+            className="mr-2"
+            name="video-format"
+            value="gif"
+            checked={store.selectedVideoFormat === "webm"}
+            onChange={(e) => {
+              store.setVideoFormat("webm");
+            }}
+          />
+          <div className="text-xs mr-2">webm</div>
+        </div>
+      </div>
 
       <button
         className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-1 rounded-lg m-4"
@@ -38,12 +66,17 @@ export const ExportVideoPanel = observer(() => {
           store.handleSeek(0);
           store.setSelectedElement(null);
           setTimeout(() => {
-            store.setPlaying(true);
-            store.saveCanvasToVideoWithAUdio();
+            if (store.selectedVideoFormat === "mp4") {
+              store.setPlaying(false);
+              store.saveCanvasToVideoWithAudio();
+            } else {
+              store.setPlaying(true);
+              store.saveCanvasToVideoWithAudio();
+            }
           }, 1000);
         }}
       >
-        Export Video ({store.maxTime / 1000} secs)
+        Export Video ({store.maxTime / 1000} secs) {store.selectedVideoFormat === "mp4" ? ("ALPHA") : ""}
       </button>
     </>
   );
