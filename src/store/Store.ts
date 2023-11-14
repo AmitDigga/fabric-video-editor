@@ -157,6 +157,7 @@ export class Store {
           }
           if(editorElement.type === "text" && animation.properties.textType === "character"){
             this.canvas?.remove(...editorElement.properties.splittedTexts)
+            // @ts-ignore
             editorElement.properties.splittedTexts = getTextObjectsPartitionedByCharacters(editorElement.fabricObject,editorElement);
               editorElement.properties.splittedTexts.forEach((textObject) => {
               this.canvas!.add(textObject);
@@ -798,6 +799,7 @@ export class Store {
             selectable: true,
             lockUniScaling: true,
             // filters: filters,
+            // @ts-ignore
             customFilter: element.properties.effect.type,
           });
 
@@ -856,6 +858,7 @@ export class Store {
             selectable: true,
             lockUniScaling: true,
             // filters
+            // @ts-ignore
             customFilter: element.properties.effect.type,
           });
           // imageObject.applyFilters();

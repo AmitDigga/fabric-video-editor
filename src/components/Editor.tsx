@@ -1,14 +1,24 @@
 "use client";
 
 import { fabric } from "fabric";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StoreContext } from "@/store";
 import { observer } from "mobx-react";
-import "@/utils/fabric-utils";
 import { Resources } from "./Resources";
 import { ElementsPanel } from "./panels/ElementsPanel";
 import { Menu } from "./Menu";
 import { TimeLine } from "./TimeLine";
+import { Store } from "@/store/Store";
+import "@/utils/fabric-utils";
+
+export const EditorWithStore = () => {
+  const [store] = useState(new Store());
+  return (
+    <StoreContext.Provider value={store}>
+      <Editor></Editor>
+    </StoreContext.Provider>
+  );
+}
 
 export const Editor = observer(() => {
   const store = React.useContext(StoreContext);
