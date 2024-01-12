@@ -5,7 +5,7 @@ import anime, { get } from 'animejs';
 import { MenuOption, EditorElement, Animation, TimeFrame, VideoEditorElement, AudioEditorElement, Placement, ImageEditorElement, Effect, TextEditorElement } from '../types';
 import { FabricUitls } from '@/utils/fabric-utils';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import {  toBlobURL } from '@ffmpeg/util';
+import { toBlobURL } from '@ffmpeg/util';
 
 export class Store {
   canvas: fabric.Canvas | null
@@ -155,28 +155,28 @@ export class Store {
             const clipRectangle = FabricUitls.getClipMaskRect(editorElement, 50);
             fabricObject.set('clipPath', clipRectangle)
           }
-          if(editorElement.type === "text" && animation.properties.textType === "character"){
+          if (editorElement.type === "text" && animation.properties.textType === "character") {
             this.canvas?.remove(...editorElement.properties.splittedTexts)
             // @ts-ignore
-            editorElement.properties.splittedTexts = getTextObjectsPartitionedByCharacters(editorElement.fabricObject,editorElement);
-              editorElement.properties.splittedTexts.forEach((textObject) => {
+            editorElement.properties.splittedTexts = getTextObjectsPartitionedByCharacters(editorElement.fabricObject, editorElement);
+            editorElement.properties.splittedTexts.forEach((textObject) => {
               this.canvas!.add(textObject);
             })
-            const duration = animation.duration/2;
-            const delay = duration/editorElement.properties.splittedTexts.length;
-            for(let i = 0; i < editorElement.properties.splittedTexts.length; i++){
+            const duration = animation.duration / 2;
+            const delay = duration / editorElement.properties.splittedTexts.length;
+            for (let i = 0; i < editorElement.properties.splittedTexts.length; i++) {
               const splittedText = editorElement.properties.splittedTexts[i];
-              const offset =  {
+              const offset = {
                 left: splittedText.left! - editorElement.placement.x,
-                 top: splittedText.top! - editorElement.placement.y
+                top: splittedText.top! - editorElement.placement.y
               }
               this.animationTimeLine.add({
-                left: [startPosition.left!+offset.left, targetPosition.left+offset.left],
-                top: [startPosition.top!+offset.top, targetPosition.top+offset.top],
-                delay: i*delay,
+                left: [startPosition.left! + offset.left, targetPosition.left + offset.left],
+                top: [startPosition.top! + offset.top, targetPosition.top + offset.top],
+                delay: i * delay,
                 duration: duration,
                 targets: splittedText,
-              }, editorElement.timeFrame.start); 
+              }, editorElement.timeFrame.start);
             }
             this.animationTimeLine.add({
               opacity: [1, 0],
@@ -189,7 +189,7 @@ export class Store {
               duration: 1,
               targets: fabricObject,
               easing: 'linear',
-            }, editorElement.timeFrame.start+animation.duration);
+            }, editorElement.timeFrame.start + animation.duration);
 
             this.animationTimeLine.add({
               opacity: [0, 1],
@@ -202,7 +202,7 @@ export class Store {
               duration: 1,
               targets: editorElement.properties.splittedTexts,
               easing: 'linear',
-            }, editorElement.timeFrame.start+animation.duration);
+            }, editorElement.timeFrame.start + animation.duration);
           }
           this.animationTimeLine.add({
             left: [startPosition.left, targetPosition.left],
@@ -614,112 +614,12 @@ export class Store {
   }
 
   saveCanvasToVideoWithAudio() {
-    if(this.selectedVideoFormat === 'webm'){
-      this.saveCanvasToVideoWithAudioWebm();
-    }else if(this.selectedVideoFormat === 'mp4'){
-      this.saveCanvasToVideoWithAudioMp4();
-    }
+    this.saveCanvasToVideoWithAudioWebmMp4();
   }
-  saveCanvasToVideoWithAudioMp4() {
-    const store = this;
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
 
-    const frames:string[] = [];
-    // const frames:Uint8Array[] = [];
-    const animationDuration = this.maxTime; // milliseconds
-    const frameRate = this.fps; // frames per second
-
-    function captureFrame() {
-      if(!ctx) return;
-      store.handleSeek(currentTime);
-      const frame = canvas.toDataURL('image/jpeg', 1);
-      frames.push(frame);
-
-      // const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-      // const frame = canvas.toDataURL('image/jpeg', 0.8);
-      // if (!imageData) return;
-      // const frame = new Uint8Array(imageData.data);
-      // frames.push(frame);
-      // console.log("captured frame", frame);
-      console.log("captured frame", frame);
-    }
-
-    const interval = 1000 / frameRate;
-    let currentTime = 0;
-    var BASE64_MARKER = ';base64,';
-
-    function convertDataURIToBinary(dataURI:string) : Uint8Array{
-      var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
-      var base64 = dataURI.substring(base64Index);
-      var raw = window.atob(base64);
-      var rawLength = raw.length;
-      var array = new Uint8Array(new ArrayBuffer(rawLength));
-
-      for(let i = 0; i < rawLength; i++) {
-        array[i] = raw.charCodeAt(i);
-      }
-      return array;
-    }
-    async function onAllFrameCaptured() {
-        const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd"
-        const ffmpeg = new FFmpeg();
-        ffmpeg.on('progress', (progress) => {
-          console.log('progress', progress);
-        })
-        ffmpeg.on('log', (log) => {
-          console.log('log', log);
-        })
-        await ffmpeg.load({
-           coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-            // workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
-        });
-        
-        const promises = frames.map((frame, index) => {
-          const imageName = `img_${String(index).padStart(4, '0')}.jpeg`;
-          const data = convertDataURIToBinary(frame);
-          ffmpeg.writeFile(imageName, data);
-        })
-
-        await Promise.all(promises);
-        console.log('frames written')
-        await ffmpeg.exec(
-          ["-f", "image2",'-analyzeduration',"2147483647",'-probesize','2147483647', "-i", "img_%04d.jpeg", "-vf", `fps=${frameRate},pad=ceil(iw/2)*2:ceil(ih/2)*2`, "out.mp4"],
-        )
-        const data = await ffmpeg.readFile('out.mp4');
-        const blob = new Blob([data], { type: "video/mp4" });
-        let newVideo = document.getElementById('output-video') as HTMLVideoElement;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "video.mp4";
-        a.click();
-        if(!newVideo){
-          newVideo = document.createElement('video');
-          newVideo.height = 500;
-          newVideo.width = 800;
-          newVideo.id = "output-video";
-          newVideo.src = url;
-          newVideo.controls = true;
-          document.body.appendChild(newVideo);
-        }else{
-          newVideo.src = url;
-        }
-    }
-
-    const captureInterval = setInterval(() => {
-        captureFrame();
-        currentTime += interval;
-        if (currentTime >= animationDuration) {
-            clearInterval(captureInterval);
-            onAllFrameCaptured();
-        }
-    }, interval);
-  }
-  saveCanvasToVideoWithAudioWebm() {
+  saveCanvasToVideoWithAudioWebmMp4() {
+    console.log('modified')
+    let mp4 = this.selectedVideoFormat === 'mp4'
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
     const stream = canvas.captureStream(30);
     const audioElements = this.editorElements.filter(isEditorAudioElement)
@@ -735,7 +635,7 @@ export class Store {
     });
     audioStreams.forEach((audioStream) => {
       stream.addTrack(audioStream.getAudioTracks()[0]);
-    })
+    });
     const video = document.createElement("video");
     video.srcObject = stream;
     video.height = 500;
@@ -748,14 +648,40 @@ export class Store {
       mediaRecorder.ondataavailable = function (e) {
         chunks.push(e.data);
         console.log("data available");
+
       };
-      mediaRecorder.onstop = function (e) {
+      mediaRecorder.onstop = async function (e) {
         const blob = new Blob(chunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "video.webm";
-        a.click();
+
+        if (mp4) {
+          // lets use ffmpeg to convert webm to mp4
+          const data = new Uint8Array(await (blob).arrayBuffer());
+          const ffmpeg = new FFmpeg();
+          const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd"
+          await ffmpeg.load({
+            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+            // workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
+          });
+          await ffmpeg.writeFile('video.webm', data);
+          await ffmpeg.exec(["-y", "-i", "video.webm", "-c", "copy", "video.mp4"]);
+          // await ffmpeg.exec(["-y", "-i", "video.webm", "-c:v", "libx264", "video.mp4"]);
+
+          const output = await ffmpeg.readFile('video.mp4');
+          const outputBlob = new Blob([output], { type: "video/mp4" });
+          const outputUrl = URL.createObjectURL(outputBlob);
+          const a = document.createElement("a");
+          a.download = "video.mp4";
+          a.href = outputUrl;
+          a.click();
+
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "video.webm";
+          a.click();
+        }
       };
       mediaRecorder.start();
       setTimeout(() => {
@@ -763,7 +689,6 @@ export class Store {
       }, this.maxTime);
       video.remove();
     })
-
   }
 
   refreshElements() {
@@ -997,7 +922,7 @@ export function isEditorImageElement(
 }
 
 
-function getTextObjectsPartitionedByCharacters(textObject: fabric.Text, element:TextEditorElement):fabric.Text[]{
+function getTextObjectsPartitionedByCharacters(textObject: fabric.Text, element: TextEditorElement): fabric.Text[] {
   let copyCharsObjects: fabric.Text[] = [];
   // replace all line endings with blank
   const characters = (textObject.text ?? "").split('').filter((m) => m !== '\n');
@@ -1006,7 +931,7 @@ function getTextObjectsPartitionedByCharacters(textObject: fabric.Text, element:
   const charObjectFixed = charObjects.map((m, index) => m.slice(0, m.length - 1).map(m => ({ m, index }))).flat();
   const lineHeight = textObject.getHeightOfLine(0);
   for (let i = 0; i < characters.length; i++) {
-    if(!charObjectFixed[i]) continue;
+    if (!charObjectFixed[i]) continue;
     const { m: charObject, index: lineIndex } = charObjectFixed[i];
     const char = characters[i];
     const scaleX = textObject.scaleX ?? 1;
@@ -1018,7 +943,7 @@ function getTextObjectsPartitionedByCharacters(textObject: fabric.Text, element:
       top: lineIndex * lineHeight * scaleY + (element.placement.y),
       fontSize: textObject.fontSize,
       fontWeight: textObject.fontWeight,
-      fill : '#fff',
+      fill: '#fff',
     });
     copyCharsObjects.push(charTextObject);
   }

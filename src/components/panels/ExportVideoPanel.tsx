@@ -66,13 +66,8 @@ export const ExportVideoPanel = observer(() => {
           store.handleSeek(0);
           store.setSelectedElement(null);
           setTimeout(() => {
-            if (store.selectedVideoFormat === "mp4") {
-              store.setPlaying(false);
-              store.saveCanvasToVideoWithAudio();
-            } else {
-              store.setPlaying(true);
-              store.saveCanvasToVideoWithAudio();
-            }
+            store.setPlaying(true);
+            store.saveCanvasToVideoWithAudio();
           }, 1000);
         }}
       >
