@@ -22,7 +22,7 @@ export const VideoResourcesPanel = observer(() => {
       })}
       <UploadButton
         accept="video/mp4,video/x-m4v,video/*"
-        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded"
+        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded cursor-pointer"
         onChange={handleFileChange}
       />
     </>

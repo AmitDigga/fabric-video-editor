@@ -22,7 +22,7 @@ export const AudioResourcesPanel = observer(() => {
       })}
       <UploadButton
         accept="audio/mp3,audio/*"
-        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded"
+        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded cursor-pointer"
         onChange={handleFileChange}
       />
     </>

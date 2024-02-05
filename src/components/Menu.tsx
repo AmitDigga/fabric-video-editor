@@ -18,34 +18,34 @@ export const Menu = observer(() => {
   const store = React.useContext(StoreContext);
 
   return (
-    <>
+    <ul className="bg-white h-full">
       {MENU_OPTIONS.map((option) => {
+        const isSelected = store.selectedMenuOption === option.name;
         return (
-          <button
+          <li
             key={option.name}
-            onClick={() => option.action(store)}
-            className="py-4 px-2 w-full flex flex-col items-center text-xs"
+            className={`h-[72px] w-[72px] flex flex-col items-center justify-center ${isSelected ? "bg-slate-200" : ""}`}
           >
-            <option.icon
-              className=""
-              size="20"
-              color={
-                store.selectedMenuOption === option.name ? "#00a0f5" : "black"
-              }
-            />
-            <div
-              className={
-                store.selectedMenuOption === option.name
-                  ? "font-semibold"
-                  : "font-light"
-              }
+            <button
+              onClick={() => option.action(store)}
+              className={`flex flex-col items-center`}
             >
-              {option.name}
-            </div>
-          </button>
+              <option.icon
+                size="20"
+                color={
+                  isSelected ? "#000" : "#444"
+                }
+              />
+              <div
+                className={`text-[0.6rem] hover:text-black ${isSelected ? "text-black" : "text-slate-600"}`}
+              >
+                {option.name}
+              </div>
+            </button>
+          </li>
         );
       })}
-    </>
+    </ul>
   );
 });
 
@@ -86,7 +86,7 @@ const MENU_OPTIONS = [
     },
   },
   {
-    name: "Effects",
+    name: "Effect",
     icon: MdMovieFilter,
     action: (store: Store) => {
       store.setSelectedMenuOption("Effect");
