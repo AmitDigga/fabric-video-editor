@@ -15,7 +15,7 @@ export const AudioResourcesPanel = observer(() => {
   return (
     <>
       <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
-        Add Audio
+        Audios
       </div>
       {store.audios.map((audio, index) => {
         return <AudioResource key={audio} audio={audio} index={index} />;
