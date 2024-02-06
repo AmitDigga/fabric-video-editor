@@ -20,7 +20,7 @@ export const Element = observer((props: ElementProps) => {
       style={{
         backgroundColor: bgColor,
       }}
-      className={`flex mx-2 my-1 py-2 px-1 flex-row justify-start items-center ${bgColor} max-w-[200px]`}
+      className={`flex mx-2 my-1 py-2 px-1 flex-row justify-start items-center ${bgColor}`}
       key={element.id}
       onClick={() => {
         store.setSelectedElement(element);
