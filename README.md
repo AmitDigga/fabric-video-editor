@@ -1,3 +1,9 @@
+This was an hobby project developed by me. I will add support for other features in future. Looking for backend/ffmpeg developers to help in generating video from canvas in the backend.
+
+Do you need a custom editor? Get in touch me at [Linked In](https://www.linkedin.com/in/amit-digga/)
+
+Other: [Website](https://www.amitdigga.dev/) | [Twitter](https://twitter.com/AmitDigga) |
+
 # Fabric Video Editor
 
 Fabric Video Editor is a video editor that runs in the browser. It is built with fabric.js, Next.js (a React framework), Tailwindcss, Mobx, and typescript.
@@ -12,6 +18,9 @@ https://github.com/AmitDigga/fabric-video-editor/assets/7884106/89674396-a0d3-45
 https://github.com/AmitDigga/fabric-video-editor/assets/7884106/61c32181-59c2-427c-b816-c51b40bf8bcc
 
 
+## Tech Explanation
+
+todo
 
 
 ## Features
