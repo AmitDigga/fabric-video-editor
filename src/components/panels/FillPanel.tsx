@@ -33,7 +33,7 @@ export const FillPanel = observer(() => {
   return (
     <>
       <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
-        Fill
+        Background Colour
       </div>
       <div className="flex items-center justify-center">
         <BlockPicker

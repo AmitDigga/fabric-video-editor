@@ -13,9 +13,9 @@ export const TextResource = observer(
   ({ fontSize, fontWeight, sampleText }: TextResourceProps) => {
     const store = React.useContext(StoreContext);
     return (
-      <div className="items-center bg-slate-800 m-[15px] flex flex-row">
+      <div className="items-center m-[15px] flex flex-row">
         <div
-          className="flex-1 text-white px-2 py-1"
+          className="flex-1 text-black px-2 py-1"
           style={{
             fontSize: `${fontSize}px`,
             fontWeight: `${fontWeight}`,
@@ -24,7 +24,7 @@ export const TextResource = observer(
           {sampleText}
         </div>
         <button
-          className="hover:bg-[#00a0f5] bg-[rgba(0,0,0,.25)] rounded z-10 text-white font-bold py-1"
+          className="h-[32px] w-[32px] hover:bg-black bg-[rgba(0,0,0,.25)] rounded z-10 text-white font-bold py-1 flex items-center justify-center"
           onClick={() =>
             store.addText({
               text: sampleText,

@@ -48,22 +48,25 @@ export const Editor = observer(() => {
     });
   }, []);
   return (
-    <div className="grid grid-rows-[20px_500px_1fr] grid-cols-[60px_200px_800px_1fr] h-[100%]">
-      <div className="col-span-4 bg-slate-300 text-right px-2 text-xs">
-        Created By Amit Digga
-      </div>
+    <div className="grid grid-rows-[500px_1fr_20px] grid-cols-[72px_300px_1fr_250px] h-[100svh]">
+
       <div className="tile row-span-2 flex flex-col">
         <Menu />
       </div>
-      <div className="row-span-2 flex flex-col overflow-auto">
+      <div className="row-span-2 flex flex-col overflow-scroll">
         <Resources />
       </div>
-      <canvas id="canvas" className="h-[500px] w-[800px] row col-start-3" />
-      <div className="col-start-4 row-start-2">
+      <div id="grid-canvas-container" className="col-start-3 bg-slate-100 flex justify-center items-center">
+        <canvas id="canvas" className="h-[500px] w-[800px] row" />
+      </div>
+      <div className="col-start-4 row-start-1">
         <ElementsPanel />
       </div>
-      <div className="col-start-3 row-start-3 col-span-2 relative overflow-scroll px-[10px] py-[4px]">
+      <div className="col-start-3 row-start-2 col-span-2 relative px-[10px] py-[4px] overflow-scroll">
         <TimeLine />
+      </div>
+      <div className="col-span-4 text-right px-2 text-[0.5em] bg-black text-white">
+        Crafted By Amit Digga
       </div>
     </div>
   );

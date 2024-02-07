@@ -5,9 +5,27 @@ import { formatTimeToMinSecMili } from "@/utils";
 import { observer } from "mobx-react-lite";
 import { useContext } from "react";
 import { MdPlayArrow, MdPause } from "react-icons/md";
+import { ScaleRangeInput } from "./ScaleRangeInput";
 
-export type Props = {};
-export const SeekPlayer = observer((_props: Props) => {
+const MARKINGS = [
+  {
+    interval: 5000,
+    color: 'black',
+    size: 16,
+    width: 1
+  },
+  {
+    interval: 1000,
+    color: 'black',
+    size: 8,
+    width: 1
+  }
+];
+
+export type SeekPlayerProps = {};
+
+
+export const SeekPlayer = observer((_props: SeekPlayerProps) => {
   const store = useContext(StoreContext);
   const Icon = store.playing ? MdPause : MdPlayArrow;
   const formattedTime = formatTimeToMinSecMili(store.currentTimeInMs);
@@ -27,15 +45,15 @@ export const SeekPlayer = observer((_props: Props) => {
         <div className="w-[1px] h-[25px] bg-slate-300 mx-[10px]"></div>
         <span className="font-mono">{formattedMaxTime}</span>
       </div>
-      <input
-        className="flex-1"
-        type="range"
-        min={0}
+      <ScaleRangeInput
         max={store.maxTime}
         value={store.currentTimeInMs}
-        onChange={(event) => {
-          store.handleSeek(parseInt(event.target.value));
+        onChange={(value) => {
+          store.handleSeek(value);
         }}
+        height={30}
+        markings={MARKINGS}
+        backgroundColor="white"
       />
     </div>
   );
