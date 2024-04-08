@@ -1,8 +1,7 @@
-This was an hobby project developed by me. I will add support for other features in future. Looking for backend/ffmpeg developers to help in generating video from canvas in the backend.
-
 Do you need a custom editor? Get in touch me at [Linked In](https://www.linkedin.com/in/amit-digga/)
-
 Other: [Website](https://www.amitdigga.dev/) | [Twitter](https://twitter.com/AmitDigga) |
+
+This was a hobby project. I will add support for other features in future. Looking for backend/ffmpeg developers to help me in generating video from canvas in the backend.
 
 # Fabric Video Editor
 
