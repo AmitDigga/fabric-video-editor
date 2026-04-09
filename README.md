@@ -1,7 +1,10 @@
+
+
 The app's live link to test in the browser is: https://fabric-video-editor.vercel.app/
 
-Do you need a custom editor? Get in touch with me at [Linked In](https://www.linkedin.com/in/amit-digga/)
-Other: [Website](https://www.amitdigga.dev/) | [Twitter](https://twitter.com/AmitDigga) |
+
+Do you need a custom editor? Get in touch with me at [Linked In](https://www.linkedin.com/in/amit-digga/). 
+Visit my studio website [Artless Studio](https://artlessstudio.in)
 
 This was a hobby project. I will add support for other features in the future. Looking for backend/ffmpeg developers to help me generate video from Canvas in the backend.
 
