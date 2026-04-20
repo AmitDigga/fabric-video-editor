@@ -5,7 +5,7 @@ import { StoreContext } from "@/store";
 import { observer } from "mobx-react";
 import { MdDelete } from "react-icons/md";
 import {
-  Animation,
+  TAnimation,
   FadeInAnimation,
   FadeOutAnimation,
   SlideDirection,
@@ -22,7 +22,7 @@ const ANIMATION_TYPE_TO_LABEL: Record<string, string> = {
   breath: "Breath",
 };
 export type AnimationResourceProps = {
-  animation: Animation;
+  animation: TAnimation;
 };
 export const AnimationResource = observer((props: AnimationResourceProps) => {
   const store = React.useContext(StoreContext);
@@ -40,13 +40,13 @@ export const AnimationResource = observer((props: AnimationResourceProps) => {
         </button>
       </div>
       {props.animation.type === "fadeIn" ||
-      props.animation.type === "fadeOut" ? (
+        props.animation.type === "fadeOut" ? (
         <FadeAnimation
           animation={props.animation as FadeInAnimation | FadeOutAnimation}
         />
       ) : null}
       {props.animation.type === "slideIn" ||
-      props.animation.type === "slideOut" ? (
+        props.animation.type === "slideOut" ? (
         <SlideAnimation
           animation={props.animation as SlideInAnimation | SlideOutAnimation}
         />

@@ -92,7 +92,7 @@ export type SlideOutAnimation = AnimationBase<"slideOut", {
   textType:SlideTextType,
 }>;
 
-export type Animation =
+export type TAnimation =
   FadeInAnimation
   | FadeOutAnimation
   | SlideInAnimation
