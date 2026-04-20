@@ -1,7 +1,9 @@
+import Image from "next/image";
 export type UploadButtonProps = {
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   accept: string;
+  name: string
 };
 export const UploadButton = (props: UploadButtonProps) => {
   return (
@@ -13,7 +15,8 @@ export const UploadButton = (props: UploadButtonProps) => {
         className="hidden"
         onChange={props.onChange}
       />
-      Upload
+      <p className="flex items-center justify-center"> {props.name}
+      </p>
     </label>
   );
 };

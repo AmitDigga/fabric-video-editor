@@ -14,17 +14,18 @@ export const VideoResourcesPanel = observer(() => {
   };
   return (
     <>
-      <div className="text-sm px-[16px] pt-[16px] pb-[8px] font-semibold">
-        Videos
-      </div>
+
       {store.videos.map((video, index) => {
         return <VideoResource key={video} video={video} index={index} />;
       })}
-      <UploadButton
-        accept="video/mp4,video/x-m4v,video/*"
-        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded cursor-pointer"
-        onChange={handleFileChange}
-      />
+      <div className="flex justify-center mt-4">
+        <UploadButton
+          accept="video/mp4,video/x-m4v,video/*"
+          className="bg-green-400 w-full max-w-[260px]  hover:bg-green-500 text-gray-800 font-bold text-center mx-2 py-2 px-4 rounded cursor-pointer"
+          onChange={handleFileChange}
+          name={'Videos'}
+        />
+      </div>
     </>
   );
 });
